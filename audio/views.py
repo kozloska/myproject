@@ -11,7 +11,6 @@ from pydub import AudioSegment
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
-
 @api_view(['POST'])
 def upload_audio(request):
     if request.method == 'POST':
@@ -47,14 +46,14 @@ def upload_audio(request):
                     return Response({"error": "Ошибка при конвертации файла"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             try:
-                model = whisper.load_model("base")
+                model = whisper.load_model("small")  # Измените на "medium", если необходимо
             except Exception as e:
                 logger.error(f"Ошибка при загрузке модели: {str(e)}")
                 return Response({"error": "Ошибка при загрузке модели"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             try:
                 logger.info("Начинаю транскрибирование...")
-                result = model.transcribe(converted_file_path)
+                result = model.transcribe(converted_file_path, language='ru')  # Укажите язык
                 return Response(result, status=status.HTTP_200_OK)
             except Exception as e:
                 logger.error(f"Ошибка при транскрибировании: {str(e)}")
