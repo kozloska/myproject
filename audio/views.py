@@ -2,9 +2,12 @@
 import os
 import logging
 from django.core.files.storage import default_storage
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from .models import Specialization
 from .serializers import AudioFileSerializer
 import whisper
 from pydub import AudioSegment
@@ -61,3 +64,9 @@ def upload_audio(request):
 
         logger.error(f"Ошибка валидации: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def specialization_list(request):
+    specializations = Specialization.objects.all().values('id', 'name')  # Получаем все записи
+    specializations_list = list(specializations)  # Преобразуем QuerySet в список
+    return JsonResponse(specializations_list, safe=False)  # Возвращаем JSON-ответ
