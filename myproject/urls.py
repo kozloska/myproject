@@ -23,6 +23,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
+    path('specializations/', include('audio.urls')),  # Подключение маршрутов вашего приложения
+    path('commissions/', include('audio.urls')),  # Подключение маршрутов вашего приложения
 ]
 
 # Добавление обработки медиафайлов

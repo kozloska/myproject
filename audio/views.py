@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Specialization
+from .models import Specialization, Commission
 from .serializers import AudioFileSerializer
 import whisper
 from pydub import AudioSegment
@@ -65,8 +65,18 @@ def upload_audio(request):
         logger.error(f"Ошибка валидации: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET'])
 def specialization_list(request):
-    specializations = Specialization.objects.all().values('id', 'name')  # Получаем все записи
-    specializations_list = list(specializations)  # Преобразуем QuerySet в список
-    return JsonResponse(specializations_list, safe=False)  # Возвращаем JSON-ответ
+    specializations = Specialization.objects.all().values('ID', 'Name')
+    specializations_list = list(specializations)
+    print(specializations_list)  # Логирование для проверки
+    return Response(specializations_list, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def commission_list(request):
+    commissions = Commission.objects.all().values('ID', 'Name')
+    commission_list = list(commissions)
+    print(commission_list)  # Логирование для проверки
+    return Response(commission_list, status=status.HTTP_200_OK)
