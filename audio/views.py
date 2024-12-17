@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Specialization, Commission
+from .models import Specialization, Commission, DefenseSchedule
 from .serializers import AudioFileSerializer
 import whisper
 from pydub import AudioSegment
@@ -84,3 +84,8 @@ def commission_list(request):
     commission_list = list(commissions)
     return Response(commission_list, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def defense_schedule_list(request):
+    commissions = DefenseSchedule.objects.all().values('ID', 'DateTime')
+    commission_list = list(commissions)
+    return Response(commission_list, status=status.HTTP_200_OK)

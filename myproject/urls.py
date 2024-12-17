@@ -25,6 +25,7 @@ urlpatterns = [
     path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
     path('specializations/', include('audio.urls')),  # Подключение маршрутов вашего приложения
     path('commissions/', include('audio.urls')),  # Подключение маршрутов вашего приложения
+    path('defense_schedules/', include('audio.urls')),  # Подключение маршрутов вашего приложения
 ]
 
 # Добавление обработки медиафайлов

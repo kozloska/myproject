@@ -27,3 +27,118 @@ class Commission(models.Model):
     def __str__(self):
         return self.Name
 
+class Institute(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'Institute'
+
+    def __str__(self):
+        return self.Name
+
+
+class Group(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=50)
+    ID_Institute = models.ForeignKey(Institute, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Group'
+
+    def __str__(self):
+        return self.Name
+
+
+class Student(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Surname = models.CharField(max_length=50)
+    Name = models.CharField(max_length=50)
+    Patronymic = models.CharField(max_length=50)
+    ID_Group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
+    ID_Project = models.ForeignKey('Project', on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        db_table = 'Student'
+
+    def __str__(self):
+        return f"{self.Surname} {self.Name} {self.Patronymic}"
+
+
+class Project(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Title = models.CharField(max_length=100)
+    Supervisor = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'Project'
+
+    def __str__(self):
+        return self.Title
+
+
+class Question(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Text = models.TextField()
+    ID_Project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Question'
+
+    def __str__(self):
+        return self.Text
+
+
+class Protocol(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Number = models.CharField(max_length=50)
+    Year = models.IntegerField()
+    Grade = models.CharField(max_length=10)
+    ID_Question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    ID_DefenseSchedule = models.ForeignKey('DefenseSchedule', on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        db_table = 'Protocol'
+
+    def __str__(self):
+        return self.Number
+
+
+class DefenseSchedule(models.Model):
+    ID = models.AutoField(primary_key=True)
+    DateTime = models.DateTimeField()
+    ID_Commission = models.ForeignKey('Commission', on_delete=models.CASCADE)
+    class Meta:
+        db_table = 'DefenseSchedule'
+
+    def __str__(self):
+        return f"{self.DateTime}"
+
+
+
+
+class CommissionMember(models.Model):
+    ID = models.AutoField(primary_key=True)
+    Surname = models.CharField(max_length=50)
+    Name = models.CharField(max_length=50)
+    Patronymic = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'CommissionMember'
+
+    def __str__(self):
+        return f"{self.Surname} {self.Name} {self.Patronymic}"
+
+
+class CommissionComposition(models.Model):
+    ID = models.AutoField(primary_key=True)
+    ID_Commission = models.ForeignKey(Commission, on_delete=models.CASCADE)
+    ID_Member = models.ForeignKey(CommissionMember, on_delete=models.CASCADE)
+    Role = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'CommissionComposition'
+
+    def __str__(self):
+        return f"{self.ID_Member} - {self.Role}"
