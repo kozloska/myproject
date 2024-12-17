@@ -2,7 +2,6 @@
 import os
 import logging
 from django.core.files.storage import default_storage
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -70,7 +69,6 @@ def upload_audio(request):
 def specialization_list(request):
     specializations = Specialization.objects.all().values('ID', 'Name')
     specializations_list = list(specializations)
-    print(specializations_list)  # Логирование для проверки
     return Response(specializations_list, status=status.HTTP_200_OK)
 
 
@@ -78,5 +76,11 @@ def specialization_list(request):
 def commission_list(request):
     commissions = Commission.objects.all().values('ID', 'Name')
     commission_list = list(commissions)
-    print(commission_list)  # Логирование для проверки
     return Response(commission_list, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def commission_list(request):
+    commissions = Commission.objects.all().values('ID', 'Name')
+    commission_list = list(commissions)
+    return Response(commission_list, status=status.HTTP_200_OK)
+
