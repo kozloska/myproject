@@ -115,9 +115,6 @@ class DefenseSchedule(models.Model):
     def __str__(self):
         return f"{self.DateTime}"
 
-
-
-
 class CommissionMember(models.Model):
     ID = models.AutoField(primary_key=True)
     Surname = models.CharField(max_length=50)
