@@ -5,23 +5,52 @@ from django.core.files.storage import default_storage
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from .models import Specialization, Commission, DefenseSchedule, Project, Student
+from .models import Specialization, Commission, DefenseSchedule, Project, Student, Question
 from .serializers import AudioFileSerializer
 import whisper
 from pydub import AudioSegment
+import spacy
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
+
+def extract_questions(text):
+    nlp = spacy.load("ru_core_news_sm")
+    doc = nlp(text)
+    questions = []
+
+    for sent in doc.sents:
+        if sent.text.endswith('?'):
+            questions.append(sent.text)
+
+    return questions
 @api_view(['POST'])
 def upload_audio(request):
+    logger.info("Запрос на загрузку аудио получен.")
+    logger.info(f"Полученные данные: {request.data}")
+
     if request.method == 'POST':
+        logger.debug(f"Переданные данные для сериализации: {request.data}")
+
         serializer = AudioFileSerializer(data=request.data)
         if serializer.is_valid():
             audio_file = serializer.save()
             audio_file_path = default_storage.path(audio_file.audio.name)
 
             logger.info(f"Путь к аудиофайлу: {audio_file_path}")
+
+            # Извлечение ID проекта
+            project_id_str = request.data.get('project_id')
+            if not project_id_str:
+                logger.error("ID проекта не передан")
+                return Response({"error": "ID проекта не передан"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Преобразование project_id в целое число
+            try:
+                project_id = int(project_id_str)
+            except ValueError:
+                logger.error("ID проекта должен быть целым числом")
+                return Response({"error": "ID проекта должен быть целым числом"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Проверка формата файла
             allowed_extensions = ['.wav', '.mp3', '.ogg', '.flac', '.3gp']
@@ -36,9 +65,7 @@ def upload_audio(request):
 
             # Конвертация файла в WAV, если это необходимо
             converted_file_path = audio_file_path.replace(os.path.splitext(audio_file.audio.name)[1], '.wav')
-            if audio_file.audio.name.endswith('.wav'):
-                converted_file_path = audio_file_path  # Если файл уже в WAV, не конвертируем
-            else:
+            if not audio_file.audio.name.endswith('.wav'):
                 try:
                     audio = AudioSegment.from_file(audio_file_path)
                     audio.export(converted_file_path, format='wav')
@@ -56,13 +83,29 @@ def upload_audio(request):
             try:
                 logger.info("Начинаю транскрибирование...")
                 result = model.transcribe(converted_file_path, language='ru')  # Укажите язык
-                return Response(result, status=status.HTTP_200_OK)
+                transcribed_text = result['text']  # Получите текст
+
+                # Извлечение вопросов
+                questions = extract_questions(transcribed_text)
+                logger.info(f"П: {questions}")
+                for question in questions:
+                    project = Project.objects.filter(ID=project_id).first()
+                    if project is None:
+                        logger.error(f"Проект с ID {project_id} не найден")
+                        return Response({"error": "Проект не найден"}, status=status.HTTP_404_NOT_FOUND)
+                    Question.objects.create(Text=question, ID_Project=project)  # Сохраняем вопрос в БД
+                    project.Status = True
+                    project.save()
+
+                # Возвращаем успешный ответ после успешного сохранения вопросов
+                return Response({"message": "Аудио успешно загружено и обработано"}, status=status.HTTP_201_CREATED)
+
             except Exception as e:
                 logger.error(f"Ошибка при транскрибировании: {str(e)}")
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        logger.error(f"Ошибка валидации: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Если сериализатор не прошел валидацию, выводим ошибки
+        return Response("Сохранено",status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
