@@ -188,3 +188,34 @@ def students_by_project(request):
     return Response(list(students), status=status.HTTP_200_OK)
 
 
+
+@api_view(['GET'])
+def questions_by_project(request):
+    try:
+        # Получаем project_id из параметров запроса
+        project_id = request.query_params.get('project_id')
+
+        if project_id is None:
+            return Response({'error': 'project_id не предоставлен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Преобразуем project_id в целое число
+        project_id = int(project_id)
+
+        # Получаем проект по ID
+        project = Project.objects.get(ID=project_id)
+
+    except Project.DoesNotExist:
+        return Response({'error': 'Проект не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except ValueError:
+        return Response({'error': 'Неверный формат project_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Проверяем статус проекта
+    if project.Status:
+        # Получаем вопросы, связанные с проектом
+        questions = Question.objects.filter(ID_Project=project_id).values('ID', 'Text')
+        return Response(list(questions), status=status.HTTP_200_OK)
+    else:
+        # Если статус проекта False, возвращаем сообщение
+        return Response([{'Text': "Вопросы еще не обработаны"}], status=status.HTTP_200_OK)
+
+
