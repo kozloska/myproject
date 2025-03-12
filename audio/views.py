@@ -2,10 +2,12 @@
 import os
 import logging
 from django.core.files.storage import default_storage
+from django.db.models import Prefetch
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Specialization, Commission, DefenseSchedule, Project, Student, Question
+from .models import Specialization, Commission, DefenseSchedule, Project, Student, SecretarySpecialization, Question, \
+    CommissionComposition, CommissionMember
 from .serializers import AudioFileSerializer
 import whisper
 from pydub import AudioSegment
@@ -13,6 +15,7 @@ import spacy
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
+print(whisper.__version__)
 
 def extract_questions(text):
     nlp = spacy.load("ru_core_news_sm")
@@ -24,6 +27,8 @@ def extract_questions(text):
             questions.append(sent.text)
 
     return questions
+
+
 @api_view(['POST'])
 def upload_audio(request):
     logger.info("Запрос на загрузку аудио получен.")
@@ -53,7 +58,8 @@ def upload_audio(request):
                 return Response({"error": "ID проекта должен быть целым числом"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Проверка формата файла
-            allowed_extensions = ['.wav', '.mp3', '.ogg', '.flac', '.3gp']
+            allowed_extensions = ['.wav', '.mp3', '.ogg', '.flac', '.3gp', '.m4a']
+
             if not any(audio_file.audio.name.endswith(ext) for ext in allowed_extensions):
                 logger.error("Неподдерживаемый формат файла")
                 return Response({"error": "Неподдерживаемый формат файла"}, status=status.HTTP_400_BAD_REQUEST)
@@ -115,6 +121,16 @@ def specialization_list(request):
     return Response(specializations_list, status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+def specialization_list_by_secretary(request):
+    secretary_id = request.data.get('secretary_id')
+    specializations = SecretarySpecialization.objects.filter(ID_Secretary_id=secretary_id).values('ID_Specialization_id')
+    # Получаем список ID специализаций
+    specialization_ids = [spec['ID_Specialization_id'] for spec in specializations]
+    # Получаем специализации по ID
+    specializations_list = Specialization.objects.filter(ID__in=specialization_ids).values('ID', 'Name')
+    return Response(list(specializations_list), status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 def project_list(request):
@@ -130,6 +146,25 @@ def commission_list(request):
     commissions = Commission.objects.all().values('ID', 'Name')
     commission_list = list(commissions)
     return Response(commission_list, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def commission_list_by_member(request):
+    member_id = request.data.get('secretary_id')
+    # Получаем комиссии, в которых есть указанный член комиссии
+    print("Saved successfully")
+    commissions = Commission.objects.filter(
+        commissioncomposition__ID_Member=member_id
+    ).values_list('Name', flat=True)
+    print("Saved successfully")
+    if not commissions:
+        return Response(
+            {'message': 'Комиссии не найдены для данного члена комиссии.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    return Response({'commissions': list(commissions)}, status=status.HTTP_200_OK)
+
 
 
 @api_view(['GET'])
@@ -154,9 +189,7 @@ def add_commission_to_schedule(request):
         # Обновляем ID комиссии
         defense_schedule.ID_Commission_id = commission_id
 
-        print(f"Saving DefenseSchedule with ID_Commission_id: {commission_id}")
         defense_schedule.save()  # Сохраняем изменения в базе данных
-        print("Saved successfully")
 
         return Response({"message": "Комиссия успешно добавлена в расписание."}, status=status.HTTP_200_OK)
 
@@ -219,3 +252,140 @@ def questions_by_project(request):
         return Response([{'Text': "Вопросы еще не обработаны"}], status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+def authorize_user(request):
+    surname = request.data.get('surname')
+    name = request.data.get('name')
+    patronymic = request.data.get('patronymic')
+
+    # Ищем пользователя в базе данных по ФИО
+    try:
+        user = CommissionMember.objects.get(
+            Surname=surname,
+            Name=name,
+            Patronymic=patronymic
+        )
+    except CommissionMember.DoesNotExist:
+        return Response( {'message': 'Пользователь не найден.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Возвращаем информацию об авторизованном пользователе
+    return Response({
+        'id': user.ID,
+        'surname': user.Surname,
+        'name': user.Name,
+        'patronymic': user.Patronymic
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_projects_by_defense_schedule_and_specialization(request):
+    defense_schedule_id = request.query_params.get('defense_schedule_id')
+    specialization_id = request.query_params.get('specialization_id')
+    try:
+        projects = Project.objects.filter(
+            student__id_defense_schedule__id=defense_schedule_id,
+            student__id_specialization=specialization_id
+        ).prefetch_related(
+            Prefetch('student', queryset=Student.objects.select_related('id_defense_schedule', 'id_specialization'))
+        ).values('id', 'title', 'supervisor')
+
+        return Response(list(projects), status=status.HTTP_200_OK)
+    except (Project.DoesNotExist, Student.DoesNotExist, Specialization.DoesNotExist, DefenseSchedule.DoesNotExist):
+        return Response({'message': 'Проекты не найдены.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Question, Project
+
+
+@api_view(['PUT'])
+def update_question(request):
+    question_id = request.data.get('question_id')
+    try:
+        # Получаем вопрос по ID
+        question = Question.objects.get(ID=question_id)
+
+        # Получаем новый текст вопроса из тела запроса
+        new_text = request.data.get('text')
+
+        # Обновляем текст вопроса
+        question.Text = new_text
+        question.save()
+
+        # Возвращаем обновленный вопрос
+        return Response({'ID': question.ID, 'Text': question.Text}, status=status.HTTP_200_OK)
+
+    except Question.DoesNotExist:
+        # Если вопрос не найден, возвращаем ошибку 404
+        return Response({'error': 'Вопрос не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        # Обрабатываем другие исключения
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+def delete_question(request):
+    question_id = request.data.get('question_id')
+    try:
+        # Получаем вопрос по ID
+        question = Question.objects.get(ID=question_id)
+
+        # Удаляем вопрос
+        question.delete()
+
+        # Возвращаем сообщение об успешном удалении
+        return Response({'message': 'Вопрос успешно удален'}, status=status.HTTP_200_OK)
+
+    except Question.DoesNotExist:
+        # Если вопрос не найден, возвращаем ошибку 404
+        return Response({'error': 'Вопрос не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        # Обрабатываем другие исключения
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Student, Protocol
+
+
+@api_view(['POST'])
+def update_grade(request):
+    try:
+        # Получаем данные из тела запроса
+        student_id = request.data.get('student_id')
+        grade = request.data.get('grade')
+
+        # Получаем студента по ID
+        student = Student.objects.get(ID=student_id)
+        logger.info(f"П: {student}")
+        logger.info(f"П: {student_id}")
+
+        protocol = Protocol.objects.get(ID_Student=student.ID)
+
+        if protocol:
+            # Обновляем оценку в протоколе
+            protocol.Grade = grade
+            protocol.save()
+
+            # Возвращаем информацию об обновленной оценке
+            return Response({
+                'student_id': student_id,
+                'grade': grade
+            }, status=status.HTTP_200_OK)
+        else:
+            # Если протокол не найден, возвращаем ошибку 404
+            return Response({'error': 'Протокол не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Student.DoesNotExist:
+        # Если студент не найден, возвращаем ошибку 404
+        return Response({'error': 'Студент не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        # Обрабатываем другие исключения
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

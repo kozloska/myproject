@@ -30,6 +30,7 @@ urlpatterns = [
     path('defense_schedules/addComission/', include('audio.urls')),  # Подключение маршрутов вашего приложения
     path('students_by_project', include('audio.urls')),  # Подключение маршрутов вашего приложения
     path('questions_by_project', include('audio.urls')),  # Подключение маршрутов вашего приложения
+    path('specializations_by_secretary/',include('audio.urls')),
 ]
 
 # Добавление обработки медиафайлов

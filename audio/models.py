@@ -93,10 +93,10 @@ class Question(models.Model):
 
 class Protocol(models.Model):
     ID = models.AutoField(primary_key=True)
-    Number = models.CharField(max_length=50)
     Year = models.IntegerField()
     Grade = models.CharField(max_length=10)
     ID_Question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    ID_Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     ID_DefenseSchedule = models.ForeignKey('DefenseSchedule', on_delete=models.SET_NULL, null=True)
 
     class Meta:
@@ -140,3 +140,15 @@ class CommissionComposition(models.Model):
 
     def __str__(self):
         return f"{self.ID_Member} - {self.Role}"
+
+
+
+class SecretarySpecialization(models.Model):
+    ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
+    ID_Secretary = models.ForeignKey(CommissionMember, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Secretary/Specialization'
+
+    def __str__(self):
+        return f"{self.ID_Specialization} - {self.ID_Secretary}"
