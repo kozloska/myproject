@@ -1,6 +1,8 @@
 # audio/views.py
 import os
 import logging
+from datetime import datetime
+
 from django.core.files.storage import default_storage
 from django.db.models import Prefetch
 from rest_framework import status
@@ -8,10 +10,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Specialization, Commission, DefenseSchedule, Project, Student, SecretarySpecialization, Question, \
     CommissionComposition, CommissionMember
-from .serializers import AudioFileSerializer
+from .serializers import AudioFileSerializer, ProjectSerializer
 import whisper
 from pydub import AudioSegment
 import spacy
+from .models import Specialization, Student, Project
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
@@ -363,8 +366,6 @@ def update_grade(request):
 
         # Получаем студента по ID
         student = Student.objects.get(ID=student_id)
-        logger.info(f"П: {student}")
-        logger.info(f"П: {student_id}")
 
         protocol = Protocol.objects.get(ID_Student=student.ID)
 
@@ -389,3 +390,71 @@ def update_grade(request):
     except Exception as e:
         # Обрабатываем другие исключения
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def create_question(request):
+    try:
+        # Получаем текст нового вопроса и ID проекта из тела запроса
+        text = request.data.get('text')
+        project_id = request.data.get('project_id')
+
+        # Проверяем, что текст вопроса и ID проекта существуют
+        if not text:
+            return Response({'error': 'Текст вопроса обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+        if not project_id:
+            return Response({'error': 'ID проекта обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Получаем проект по ID
+        project = Project.objects.get(ID=project_id)
+
+        # Создаем новый вопрос, связанный с проектом
+        new_question = Question(Text=text, ID_Project=project)
+        new_question.save()
+
+        # Возвращаем созданный вопрос
+        return Response({
+            'ID': new_question.ID,
+            'Text': new_question.Text,
+            'Project_ID': new_question.ID_Project.ID
+        }, status=status.HTTP_201_CREATED)
+
+    except Project.DoesNotExist:
+        # Если проект не найден, возвращаем ошибку 404
+        return Response({'error': 'Проект не найден'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        # Обрабатываем другие исключения
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['GET'])
+def get_today_defenses_by_specialization(request):
+    specialization_id = request.data.get('specialization_id')
+    date_str  = request.data.get('today')
+    try:
+        # Получаем направление по ID
+        specialization = Specialization.objects.get(ID=specialization_id)
+
+        # Преобразуем строку даты в объект datetime
+        defense_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+        # Получаем расписания защит через протокол
+        defenses = DefenseSchedule.objects.filter(
+            protocol__ID_Student__ID_Specialization=specialization,
+            DateTime__date=defense_date
+        ).distinct()
+
+        # Формируем ответ
+        response_data = [
+            {'id': defense.ID, 'date': defense.DateTime}
+            for defense in defenses
+        ]
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    except Specialization.DoesNotExist:
+        return Response({'error': 'Specialization not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
