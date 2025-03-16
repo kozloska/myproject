@@ -4,7 +4,7 @@ from .views import upload_audio, specialization_list, commission_list, defense_s
     add_commission_to_schedule, project_list, students_by_project, questions_by_project, \
     specialization_list_by_secretary, commission_list_by_member, authorize_user, \
     get_projects_by_defense_schedule_and_specialization, update_question, delete_question, update_grade, \
-    create_question, get_today_defenses_by_specialization
+    create_question, get_today_defenses_by_specialization, get_commission_composition
 
 urlpatterns = [
     path('upload/', upload_audio, name='upload_audio'),
@@ -24,5 +24,6 @@ urlpatterns = [
     path('create_question/', create_question, name='create_question'),
     path('get_today_defenses_by_specialization/', get_today_defenses_by_specialization, name='get_today_defenses_by_specialization'),
     path('get_projects_by_defense_schedule_and_specialization/', get_projects_by_defense_schedule_and_specialization, name='get_projects_by_defense_schedule_and_specialization-user'),
+    path('get_commission_composition/', get_commission_composition, name='get_commission_composition'),
 ]
 

@@ -458,3 +458,23 @@ def get_today_defenses_by_specialization(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_commission_composition(request):
+    id_commission = request.data.get('id_commission')
+    # Получаем состав комиссии по ID
+    compositions = CommissionComposition.objects.filter(ID_Commission_id=id_commission).select_related('ID_Member')
+
+    # Формируем список членов комиссии
+    members_list = []
+    for composition in compositions:
+        member = {
+            'ID': composition.ID_Member.ID,
+            'Surname': composition.ID_Member.Surname,
+            'Name': composition.ID_Member.Name,
+            'Patronymic': composition.ID_Member.Patronymic,
+            'Role': composition.Role,
+        }
+        members_list.append(member)
+    return Response(members_list, status=status.HTTP_200_OK)
