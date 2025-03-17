@@ -3,13 +3,14 @@ import os
 import logging
 from datetime import datetime
 
+from django.contrib.auth.hashers import check_password
 from django.core.files.storage import default_storage
 from django.db.models import Prefetch
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Specialization, Commission, DefenseSchedule, Project, Student, SecretarySpecialization, Question, \
-    CommissionComposition, CommissionMember
+    CommissionComposition, CommissionMember, User
 from .serializers import AudioFileSerializer, ProjectSerializer
 import whisper
 from pydub import AudioSegment
@@ -126,7 +127,7 @@ def specialization_list(request):
 
 @api_view(['GET'])
 def specialization_list_by_secretary(request):
-    secretary_id = request.data.get('secretary_id')
+    secretary_id = request.query_params.get('secretary_id')
     specializations = SecretarySpecialization.objects.filter(ID_Secretary_id=secretary_id).values('ID_Specialization_id')
     # Получаем список ID специализаций
     specialization_ids = [spec['ID_Specialization_id'] for spec in specializations]
@@ -153,21 +154,19 @@ def commission_list(request):
 
 @api_view(['GET'])
 def commission_list_by_member(request):
-    member_id = request.data.get('secretary_id')
+    member_id = request.query_params.get('secretary_id')
     # Получаем комиссии, в которых есть указанный член комиссии
-    print("Saved successfully")
     commissions = Commission.objects.filter(
-        commissioncomposition__ID_Member=member_id
-    ).values_list('Name', flat=True)
-    print("Saved successfully")
+        commissioncomposition__ID_Member=member_id,
+        commissioncomposition__Role='Секретарь'
+    ).values('ID', 'Name')  # Извлекаем ID и Name
     if not commissions:
         return Response(
             {'message': 'Комиссии не найдены для данного члена комиссии.'},
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return Response({'commissions': list(commissions)}, status=status.HTTP_200_OK)
-
+    return Response(commissions, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -255,7 +254,7 @@ def questions_by_project(request):
         return Response([{'Text': "Вопросы еще не обработаны"}], status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def authorize_user(request):
     surname = request.data.get('surname')
     name = request.data.get('name')
@@ -273,10 +272,7 @@ def authorize_user(request):
 
     # Возвращаем информацию об авторизованном пользователе
     return Response({
-        'id': user.ID,
-        'surname': user.Surname,
-        'name': user.Name,
-        'patronymic': user.Patronymic
+        'id': user.ID
     }, status=status.HTTP_200_OK)
 
 
@@ -430,8 +426,8 @@ def create_question(request):
 
 @api_view(['GET'])
 def get_today_defenses_by_specialization(request):
-    specialization_id = request.data.get('specialization_id')
-    date_str  = request.data.get('today')
+    specialization_id = request.query_params.get('specialization_id')
+    date_str  = request.query_params.get('today')
     try:
         # Получаем направление по ID
         specialization = Specialization.objects.get(ID=specialization_id)
@@ -447,7 +443,7 @@ def get_today_defenses_by_specialization(request):
 
         # Формируем ответ
         response_data = [
-            {'id': defense.ID, 'date': defense.DateTime}
+            {'ID': defense.ID, 'DateTime': defense.DateTime}
             for defense in defenses
         ]
 
@@ -478,3 +474,32 @@ def get_commission_composition(request):
         }
         members_list.append(member)
     return Response(members_list, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def authenticate_user(request):
+    login = request.data.get('login')
+    password = request.data.get('password')
+
+    try:
+        user = User.objects.get(login=login)
+        if user.password == password:  # Сравнение пароля без шифрования
+            return Response({'full_name': user.full_name}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Неверный пароль'}, status=status.HTTP_401_UNAUTHORIZED)
+    except User.DoesNotExist:
+        return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def project_list_by_defense_schedule_id(request):
+    defense_schedule_id = request.query_params.get('defense_schedule_id')
+
+    projects = Project.objects.filter(
+        ID__in=Protocol.objects.filter(
+            ID_DefenseSchedule=defense_schedule_id
+        ).values('ID_Student__ID_Project')
+    ).values('ID', 'Title', 'Supervisor')
+
+    project_list = list(projects)
+    return Response(project_list, status=status.HTTP_200_OK)

@@ -151,6 +151,8 @@ class User(models.Model):
         db_table = 'user'  # Указываем имя таблицы в базе данных
 
 
+
+
 class SecretarySpecialization(models.Model):
     ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
     ID_Secretary = models.ForeignKey(CommissionMember, on_delete=models.CASCADE)
