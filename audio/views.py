@@ -301,13 +301,13 @@ from .models import Question, Project
 
 @api_view(['PUT'])
 def update_question(request):
-    question_id = request.data.get('question_id')
+    question_id = request.query_params.get('question_id')
     try:
         # Получаем вопрос по ID
         question = Question.objects.get(ID=question_id)
 
         # Получаем новый текст вопроса из тела запроса
-        new_text = request.data.get('text')
+        new_text = request.query_params.get('text')
 
         # Обновляем текст вопроса
         question.Text = new_text
@@ -327,7 +327,7 @@ def update_question(request):
 
 @api_view(['DELETE'])
 def delete_question(request):
-    question_id = request.data.get('question_id')
+    question_id = request.query_params.get('question_id')
     try:
         # Получаем вопрос по ID
         question = Question.objects.get(ID=question_id)
@@ -357,8 +357,8 @@ from .models import Student, Protocol
 def update_grade(request):
     try:
         # Получаем данные из тела запроса
-        student_id = request.data.get('student_id')
-        grade = request.data.get('grade')
+        student_id = request.query_params.get('student_id')
+        grade = request.query_params.get('grade')
 
         # Получаем студента по ID
         student = Student.objects.get(ID=student_id)
