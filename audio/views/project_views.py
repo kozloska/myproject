@@ -43,3 +43,37 @@ class ProjectViewSet(viewsets.ModelViewSet):
             # Получаем студентов, связанных с проектом
         students = Student.objects.filter(ID_Project=project_id).values('ID', 'Surname', 'Name', 'Patronymic')
         return Response(list(students), status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'])
+    def grade(self, request):
+        try:
+            # Получаем данные из тела запроса
+            student_id = request.data.get('student_id')
+            grade = request.data.get('grade')
+
+            # Получаем студента по ID
+            student = Student.objects.get(ID=student_id)
+
+            protocol = Protocol.objects.get(ID_Student=student.ID)
+
+            if protocol:
+                # Обновляем оценку в протоколе
+                protocol.Grade = grade
+                protocol.save()
+
+                # Возвращаем информацию об обновленной оценке
+                return Response({
+                    'student_id': student_id,
+                    'grade': grade
+                }, status=status.HTTP_200_OK)
+            else:
+                # Если протокол не найден, возвращаем ошибку 404
+                return Response({'error': 'Протокол не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        except Student.DoesNotExist:
+            # Если студент не найден, возвращаем ошибку 404
+            return Response({'error': 'Студент не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            # Обрабатываем другие исключения
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
