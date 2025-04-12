@@ -22,15 +22,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('specializations/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('commissions/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('defense_schedules/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('projects/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('defense_schedules/addComission/', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('students_by_project', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('questions_by_project', include('audio.urls')),  # Подключение маршрутов вашего приложения
-    path('specializations_by_secretary/',include('audio.urls')),
+   # path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
+    path('api/', include('audio.urls')),  # Подключение ваших API endpoints
 ]
 
 # Добавление обработки медиафайлов
