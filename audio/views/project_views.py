@@ -12,13 +12,29 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'])
     def by_defense_schedule(self, request):
         defense_schedule_id = request.query_params.get('defense_schedule_id')
+        if not defense_schedule_id:
+            return Response(
+                {'error': 'defense_schedule_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         projects = Project.objects.filter(
             ID__in=Protocol.objects.filter(
                 ID_DefenseSchedule=defense_schedule_id
             ).values('ID_Student__ID_Project')
-        ).values('ID', 'Title', 'Supervisor')
+        ).values('ID', 'Title', 'Supervisor', 'Status')  # Добавлено поле Status
 
-        project_list = list(projects)
+        # Добавляем человекочитаемое представление статуса
+        project_list = []
+        for project in projects:
+            project_data = {
+                'ID': project['ID'],
+                'Title': project['Title'],
+                'Supervisor': project['Supervisor'],
+                'Status': project['Status']
+            }
+            project_list.append(project_data)
+
         return Response(project_list, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
@@ -97,3 +113,33 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except Exception as e:
             # Обрабатываем другие исключения
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['GET'])
+    def project_status(self, request):
+        try:
+            # Получаем project_id из параметров запроса
+            project_id = request.query_params.get('project_id')
+
+            if project_id is None:
+                return Response({'error': 'project_id не предоставлен'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Преобразуем project_id в целое число
+            project_id = int(project_id)
+
+            # Получаем проект по ID
+            project = Project.objects.get(ID=project_id)
+
+            # Возвращаем статус проекта
+            return Response({
+                'project_id': project.ID,
+                'title': project.Title,
+                'status': project.Status
+            }, status=status.HTTP_200_OK)
+
+        except Project.DoesNotExist:
+            return Response({'error': 'Проект не найден'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except ValueError:
+            return Response({'error': 'Неверный формат project_id'},
+                            status=status.HTTP_400_BAD_REQUEST)

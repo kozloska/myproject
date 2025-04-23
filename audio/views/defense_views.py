@@ -73,7 +73,6 @@ class DefenseViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(detail=True, methods=['GET'])
     def projects(self, request, pk=None):
         """Получить проекты для конкретной защиты"""
@@ -88,7 +87,8 @@ class DefenseViewSet(viewsets.ModelViewSet):
         return Response([{
             'ID': p.ID,
             'Title': p.Title,
-            'Supervisor': p.Supervisor
+            'Supervisor': p.Supervisor,
+            'Status': p.Status
         } for p in projects])
 
     @action(detail=False, methods=['GET'])
