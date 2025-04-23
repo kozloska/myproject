@@ -90,3 +90,38 @@ class QuestionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             # Обрабатываем другие исключения
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    @action(detail=False, methods=['POST'])
+    def create_question(self, request):
+        try:
+            # Получаем текст нового вопроса и ID проекта из тела запроса
+            text = request.data.get('text')
+            project_id = request.data.get('project_id')
+
+            # Проверяем, что текст вопроса и ID проекта существуют
+            if not text:
+                return Response({'error': 'Текст вопроса обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+            if not project_id:
+                return Response({'error': 'ID проекта обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Получаем проект по ID
+            project = Project.objects.get(ID=project_id)
+
+            # Создаем новый вопрос, связанный с проектом
+            new_question = Question(Text=text, ID_Project=project)
+            new_question.save()
+
+            # Возвращаем созданный вопрос
+            return Response({
+                'ID': new_question.ID,
+                'Text': new_question.Text,
+                'Project_ID': new_question.ID_Project.ID
+            }, status=status.HTTP_201_CREATED)
+
+        except Project.DoesNotExist:
+            # Если проект не найден, возвращаем ошибку 404
+            return Response({'error': 'Проект не найден'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Обрабатываем другие исключения
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
