@@ -33,16 +33,36 @@ class ProjectViewSet(viewsets.ModelViewSet):
             # Преобразуем project_id в целое число
             project_id = int(project_id)
 
-            # Получаем проект по ID
-            project = Project.objects.get(ID=project_id)
+            # Получаем проект по ID (хотя это не обязательно для запроса студентов)
+            Project.objects.get(ID=project_id)
         except Project.DoesNotExist:
             return Response({'error': 'Проект не найден'}, status=status.HTTP_404_NOT_FOUND)
         except ValueError:
             return Response({'error': 'Неверный формат project_id'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Получаем студентов, связанных с проектом
-        students = Student.objects.filter(ID_Project=project_id).values('ID', 'Surname', 'Name', 'Patronymic')
-        return Response(list(students), status=status.HTTP_200_OK)
+        # Получаем студентов, связанных с проектом
+        students = Student.objects.filter(ID_Project=project_id).select_related('ID_Group').values(
+            'ID',
+            'Surname',
+            'Name',
+            'Patronymic',
+            'ID_Group__ID',
+            'ID_Group__Name'
+        )
+
+        # Форматируем результат
+        result = []
+        for student in students:
+            result.append({
+                'ID': student['ID'],
+                'FullName': f"{student['Surname']} {student['Name']} {student['Patronymic']}",
+                'Group': {
+                    'ID': student['ID_Group__ID'],
+                    'Name': student['ID_Group__Name']
+                }
+            })
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['POST'])
     def grade(self, request):
