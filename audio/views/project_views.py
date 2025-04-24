@@ -3,7 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Project, Student, Protocol
 from ..serializers import ProjectSerializer
+import logging
 
+logger = logging.getLogger(__name__)  # Получаем логгер
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
@@ -143,3 +145,24 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except ValueError:
             return Response({'error': 'Неверный формат project_id'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['POST'])
+    def project_time(self, request):
+        try:
+            project_id = request.data.get('project_id')
+            start_time = request.data.get('start_time')
+            students = Student.objects.filter(ID_Project=project_id)
+            for student in students:
+                protocol = Protocol.objects.filter(ID_Student=student.ID).first()
+                if protocol:
+                    protocol.DefenseStartTime = start_time
+                    # Добавьте другие поля, если нужно
+                    protocol.save()
+                else:
+                    logger.warning(f"Протокол не найден для студента: {student.ID}")
+
+            return Response({"message": "Протоколы успешно обновлены"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Ошибка при обновлении протоколов: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

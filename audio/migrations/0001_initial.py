@@ -130,6 +130,9 @@ class Migration(migrations.Migration):
                 ('ID_DefenseSchedule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='audio.defenseschedule')),
                 ('ID_Question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.question')),
                 ('ID_Student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.student')),
+                ('DefenseStartTime', models.TimeField(blank=True, null=True)),  # Новое поле
+                ('DefenseEndTime', models.TimeField(blank=True, null=True)),  # Новое поле
+                ('Number', models.CharField(max_length=30)),
             ],
             options={
                 'db_table': 'Protocol',

@@ -19,8 +19,6 @@ class UserViewSet(viewsets.ModelViewSet):
         Аутентификация пользователя по логину и паролю
         Параметры: { "login": "...", "password": "..." }
         """
-
-
         login = request.data.get('login')
         password = request.data.get('password')
 
@@ -37,6 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'Неверный пароль'}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
             return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
+
 
     @action(detail=False, methods=['POST'])
     def authorize_member(self, request):
@@ -63,6 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 {'error': 'Член комиссии не найден'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
 
     @action(detail=False, methods=['GET'])
     def specializations(self, request):
