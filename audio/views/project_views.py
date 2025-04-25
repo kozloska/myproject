@@ -73,11 +73,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
         for student in students:
             result.append({
                 'ID': student['ID'],
-                'FullName': f"{student['Surname']} {student['Name']} {student['Patronymic']}",
-                'Group': {
-                    'ID': student['ID_Group__ID'],
-                    'Name': student['ID_Group__Name']
-                }
+                'Name': student['Name'],
+                'Surname': student['Surname'],
+                'Patronymic':student['Patronymic'],
+                'ID_Group': student['ID_Group__ID'],
+                'GroupName': student['ID_Group__Name']
+
             })
 
         return Response(result, status=status.HTTP_200_OK)
