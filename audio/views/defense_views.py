@@ -18,7 +18,7 @@ class DefenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def today(self, request):
-        """Получить сегодняшние защиты по специализации"""
+
         specialization_id = request.query_params.get('specialization_id')
         date_str = request.query_params.get('date')
         try:
@@ -51,7 +51,6 @@ class DefenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'])
     def add_commission(self, request):
-        """Добавить комиссию к расписанию защиты"""
 
         try:
             commission_id = request.data.get('commissionId')
@@ -75,7 +74,7 @@ class DefenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['GET'])
     def projects(self, request, pk=None):
-        """Получить проекты для конкретной защиты"""
+
         defense = self.get_object()
 
         projects = Project.objects.filter(
@@ -93,7 +92,7 @@ class DefenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def by_specialization(self, request):
-        """Получить защиты по специализации и дате"""
+
         try:
             specialization_id = request.query_params.get('specialization_id')
             date_str = request.query_params.get('date')
@@ -122,4 +121,3 @@ class DefenseViewSet(viewsets.ModelViewSet):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-

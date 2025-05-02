@@ -5,7 +5,13 @@ from ..models import Project, Student, Protocol
 from ..serializers import ProjectSerializer
 import logging
 
-logger = logging.getLogger(__name__)  # Получаем логгер
+logger = logging.getLogger(__name__)  # Получаем логге
+
+class ProjetNewiewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()

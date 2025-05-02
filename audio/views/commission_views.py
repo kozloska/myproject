@@ -6,6 +6,7 @@ from ..models import Commission, CommissionComposition
 from ..serializers import CommissionSerializer
 
 
+
 class CommissionViewSet(viewsets.ModelViewSet):
     queryset = Commission.objects.all()
 

@@ -8,9 +8,9 @@ class AudioFile(models.Model):
 
 
 class Specialization(models.Model):
-    ID = models.AutoField(primary_key=True)  # Используйте AutoField для ID
-    Name = models.CharField(max_length=255, unique=True)
-
+    ID = models.AutoField(primary_key=True)
+    Name = models.TextField(unique=True)
+    Qualification = models.TextField(unique=True)
     class Meta:
         db_table = 'Specialization'  # Укажите имя таблицы
 
@@ -105,8 +105,6 @@ class Protocol(models.Model):
         db_table = 'Protocol'
 
 
-
-
 class DefenseSchedule(models.Model):
     ID = models.AutoField(primary_key=True)
     DateTime = models.DateTimeField()
@@ -150,8 +148,6 @@ class User(models.Model):
 
     class Meta:
         db_table = 'user'  # Указываем имя таблицы в базе данных
-
-
 
 
 class SecretarySpecialization(models.Model):

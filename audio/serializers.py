@@ -1,6 +1,7 @@
 # audio/serializers.py
 from rest_framework import serializers
-from .models import AudioFile, Question
+from .models import AudioFile, Question, CommissionComposition, Specialization, Student, Project, Group, Institute, \
+    SecretarySpecialization, User, Protocol, CommissionMember
 from rest_framework import serializers
 from .models import DefenseSchedule, Commission
 
@@ -10,18 +11,17 @@ class AudioFileSerializer(serializers.ModelSerializer):
         fields = ['audio']
 
 
-
 class CommissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commission
-        fields = ['ID', 'Name']  # Укажите нужные поля
+        fields = ['ID', 'Name']
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['ID', 'Text', 'ID_Project']  # Укажите поля, которые хотите сериализовать
+        fields = ['ID', 'Text', 'ID_Project']
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Commission
-        fields = ['ID', 'Title', 'Supervisor']  # Укажите нужные поля
+        model = Project
+        fields = ['ID', 'Title', 'Supervisor']

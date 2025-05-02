@@ -89,7 +89,8 @@ class Migration(migrations.Migration):
             name='Specialization',
             fields=[
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
-                ('Name', models.CharField(max_length=255, unique=True)),
+                ('Name', models.TextField(unique=True)),
+                ('Qualification', models.TextField(unique=True)),
             ],
             options={
                 'db_table': 'Specialization',
@@ -130,8 +131,8 @@ class Migration(migrations.Migration):
                 ('ID_DefenseSchedule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='audio.defenseschedule')),
                 ('ID_Question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.question')),
                 ('ID_Student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.student')),
-                ('DefenseStartTime', models.TimeField(blank=True, null=True)),  # Новое поле
-                ('DefenseEndTime', models.TimeField(blank=True, null=True)),  # Новое поле
+                ('DefenseStartTime', models.TimeField(blank=True, null=True)),
+                ('DefenseEndTime', models.TimeField(blank=True, null=True)),
                 ('Number', models.CharField(max_length=30)),
             ],
             options={
