@@ -9,19 +9,27 @@ class AudioFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AudioFile
         fields = ['audio']
-
+"""
 
 class CommissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commission
         fields = ['ID', 'Name']
 
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = ['ID', 'Text', 'ID_Project']
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['ID', 'Title', 'Supervisor']
+"""
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ['ID', 'Text', 'ID_Project']
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields['Text'].help_text = 'Текст вопроса (макс. 1000 символов)'
+        fields['ID_Project'].help_text = 'Ссылка на проект'
+        return fields

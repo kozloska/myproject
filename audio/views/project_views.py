@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Project, Student, Protocol
-from ..serializers import ProjectSerializer
+"""from ..serializers import ProjectSerializer
 import logging
 
 logger = logging.getLogger(__name__)  # Получаем логге
@@ -173,3 +173,4 @@ class ProjectViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Ошибка при обновлении протоколов: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+"""

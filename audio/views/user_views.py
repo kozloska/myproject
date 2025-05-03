@@ -9,40 +9,14 @@ from ..models import User, CommissionMember, SecretarySpecialization, Commission
 import logging
 
 logger = logging.getLogger(__name__)  # Получаем логгер
-
+"""
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-
-    @action(detail=False, methods=['POST'])
-    def login(self, request):
-        """
-        Аутентификация пользователя по логину и паролю
-        Параметры: { "login": "...", "password": "..." }
-        """
-        login = request.data.get('login')
-        password = request.data.get('password')
-
-        if not login or not password:
-            return Response(
-                {'error': 'Требуется логин и пароль'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            user = User.objects.get(login=login)
-            if user.password == password:  # Сравнение пароля без шифрования
-                return Response({'full_name': user.full_name}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Неверный пароль'}, status=status.HTTP_401_UNAUTHORIZED)
-        except User.DoesNotExist:
-            return Response({'error': 'Пользователь не найден'}, status=status.HTTP_404_NOT_FOUND)
 
 
     @action(detail=False, methods=['POST'])
     def authorize_member(self, request):
-        """
-        Авторизация члена комиссии по ФИО
-        Параметры: { "surname": "...", "name": "...", "patronymic": "..." }
-        """
+        
         surname = request.data.get('surname')
         name = request.data.get('name')
         patronymic = request.data.get('patronymic')
@@ -66,10 +40,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def specializations(self, request):
-        """
-        Получить специализации секретаря
-        GET /api/users/specializations/?secretary_id=<ID_секретаря>
-        """
+        
         secretary_id = request.query_params.get('secretary_id')
         logger.info("Метод specializations вызван")
         secretary_id = request.query_params.get('secretary_id')
@@ -83,10 +54,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def commissions(self, request):
-        """
-        Получить комиссии секретаря
-        GET /api/commissions/by-secretary/?secretary_id=2
-        """
+        
         member_id = request.query_params.get('secretary_id')
         # Получаем комиссии, в которых есть указанный член комиссии
         commissions = Commission.objects.filter(
@@ -100,3 +68,4 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         return Response(commissions, status=status.HTTP_200_OK)
+"""

@@ -1,10 +1,8 @@
 from requests import Response
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-
+"""
 from ..models import Commission, CommissionComposition
-from ..serializers import CommissionSerializer
-
 
 
 class CommissionViewSet(viewsets.ModelViewSet):
@@ -20,3 +18,4 @@ class CommissionViewSet(viewsets.ModelViewSet):
         } for m in members])
 
 
+"""

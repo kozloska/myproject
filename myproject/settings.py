@@ -43,7 +43,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'audio',
+    'drf_spectacular',
+    'django_filters',
 ]
+
+# Настройки документации
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Documentation',
+    'DESCRIPTION': 'Основные методы я тут выкладываю',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/',  # Если API начинается с /api/
+}
+
+REST_FRAMEWORK = {
+    # ... другие настройки DRF ...
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
