@@ -159,7 +159,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SecretarySpecialization',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('ID_Secretary',
                  models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.commissionmember')),
                 ('ID_Specialization',

@@ -151,6 +151,7 @@ class User(models.Model):
 
 
 class SecretarySpecialization(models.Model):
+    ID = models.AutoField(primary_key=True)
     ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
     ID_Secretary = models.ForeignKey(CommissionMember, on_delete=models.CASCADE)
 

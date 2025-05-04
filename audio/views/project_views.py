@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Project, Student, Protocol
+from ..serializers import ProjectSerializer
+
 """from ..serializers import ProjectSerializer
 import logging
 
@@ -174,3 +176,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             logger.error(f"Ошибка при обновлении протоколов: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 """
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
