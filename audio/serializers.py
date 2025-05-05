@@ -111,3 +111,15 @@ class UpdateDefenseTimeByProjectSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Студенты с таким ID проекта не найдены")
         return value
 
+
+class TodayDefenseQuerySerializer(serializers.Serializer):
+    specialization_id = serializers.IntegerField(
+        required=True,
+        help_text="ID специализации для фильтрации защит",
+        min_value=1
+    )
+
+    def validate_specialization_id(self, value):
+        if not Specialization.objects.filter(ID=value).exists():
+            raise serializers.ValidationError("Специализация с таким ID не найдена")
+        return value

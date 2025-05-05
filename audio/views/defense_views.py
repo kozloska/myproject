@@ -1,7 +1,16 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Prefetch
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+from audio.filters import DefenseScheduleFilter
+from audio.models import DefenseSchedule
+from audio.serializers import DefenseScheduleSerializer, TodayDefenseQuerySerializer
+from rest_framework import filters
+
 """from datetime import datetime
 from ..models import (
     DefenseSchedule,
@@ -123,3 +132,8 @@ class DefenseViewSet(viewsets.ModelViewSet):
             )
 """
 
+class DefenseViewSet(viewsets.ModelViewSet):
+    queryset = DefenseSchedule.objects.all()
+    serializer_class = DefenseScheduleSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DefenseScheduleFilter  # Используем наш кастомный фильтр

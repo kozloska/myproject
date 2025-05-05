@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from audio.views.audio_views import upload_audio
 from audio.views.commission_views import CommissionViewSet
+from audio.views.defense_views import DefenseViewSet
 from audio.views.project_views import ProjectViewSet
 from audio.views.protocol_views import ProtocolViewSet
 from audio.views.question_views import QuestionViewSet
@@ -10,13 +11,6 @@ from audio.views.secretarySpecialization_views import SecretarySpecializationVie
 from audio.views.secretary_views import SecretaryViewSet
 from audio.views.student_views import StudentViewSet
 
-"""from audio.views.commission_views import CommissionViewSet
-from audio.views.defense_views import DefenseViewSet
-from audio.views.project_views import ProjectViewSet
-from audio.views.project_views import ProjetNewiewSet
-from audio.views.question_views import QuestionViewSet
-from audio.views.user_views import UserViewSet
-"""
 
 router = DefaultRouter()
 
@@ -27,9 +21,7 @@ router.register(r'questions', QuestionViewSet, basename='question')
 router.register(r'students', StudentViewSet, basename='student')
 router.register(r'protocols', ProtocolViewSet, basename='protocol')
 router.register(r'commissions', CommissionViewSet, basename='commission')
-"""
-
-router.register(r'defenses', DefenseViewSet, basename='defense')"""
+router.register(r'defenses', DefenseViewSet, basename='defense')
 
 urlpatterns = [
     path('', include(router.urls)),

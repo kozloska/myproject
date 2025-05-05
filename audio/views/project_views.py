@@ -4,6 +4,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from ..filters import ProtocolFilter
 from ..models import Project, Student, Protocol
 from ..serializers import ProjectSerializer, UpdateDefenseTimeByProjectSerializer
 
@@ -183,6 +185,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+
 
     @action(detail=False, methods=['patch'], serializer_class=UpdateDefenseTimeByProjectSerializer)
     def project_time(self, request):
