@@ -94,7 +94,7 @@ class Question(models.Model):
 class Protocol(models.Model):
     ID = models.AutoField(primary_key=True)
     Year = models.IntegerField()
-    Grade = models.CharField(max_length=10)
+    Grade = models.CharField(max_length=30)
     ID_Question = models.ForeignKey(Question, on_delete=models.CASCADE)
     ID_Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     ID_DefenseSchedule = models.ForeignKey('DefenseSchedule', on_delete=models.SET_NULL, null=True)

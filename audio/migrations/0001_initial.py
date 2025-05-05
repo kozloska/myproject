@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('Year', models.IntegerField()),
-                ('Grade', models.CharField(max_length=10)),
+                ('Grade', models.CharField(max_length=30)),
                 ('ID_DefenseSchedule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='audio.defenseschedule')),
                 ('ID_Question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.question')),
                 ('ID_Student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.student')),

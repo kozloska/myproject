@@ -58,6 +58,7 @@ class SpecializationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class StudentSerializer(serializers.ModelSerializer):
+    ID_Group = GroupSerializer(read_only=True)
     class Meta:
         model = Student
         fields = '__all__'
@@ -73,6 +74,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CommissionCompositionSerializer(serializers.ModelSerializer):
+    ID_Commission = CommissionSerializer(read_only=True)
     class Meta:
         model = CommissionComposition
         fields = '__all__'
@@ -87,3 +89,25 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+class UpdateGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Protocol
+        fields = ['ID_Student', 'Grade']
+
+
+class UpdateDefenseTimeByProjectSerializer(serializers.ModelSerializer):
+    ID_Project = serializers.IntegerField(write_only=True)  # Явно указываем, что это входной параметр
+
+    class Meta:
+        model = Protocol
+        fields = ['ID_Project', 'DefenseStartTime']
+        extra_kwargs = {
+            'DefenseStartTime': {'required': True}
+        }
+
+    def validate_ID_Project(self, value):
+        if not Student.objects.filter(ID_Project=value).exists():
+            raise serializers.ValidationError("Студенты с таким ID проекта не найдены")
+        return value
+
