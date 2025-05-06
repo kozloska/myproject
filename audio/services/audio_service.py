@@ -6,14 +6,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class AudioService:
     ALLOWED_EXTENSIONS = ['.wav', '.mp3', '.ogg', '.flac', '.3gp', '.m4a']
 
     @classmethod
     def validate_audio_file(cls, file_name):
-        if not any(file_name.endswith(ext) for ext in cls.ALLOWED_EXTENSIONS):
-            raise ValueError("Unsupported file format")
+        ext = os.path.splitext(file_name)[1].lower()
+        if ext not in cls.ALLOWED_EXTENSIONS:
+            raise ValueError(f"Unsupported file format. Allowed: {', '.join(cls.ALLOWED_EXTENSIONS)}")
 
     @classmethod
     def convert_to_wav(cls, input_path, output_path):

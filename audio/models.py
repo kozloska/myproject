@@ -6,6 +6,9 @@ class AudioFile(models.Model):
     audio = models.FileField(upload_to='audio/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.audio.name
+
 
 class Specialization(models.Model):
     ID = models.AutoField(primary_key=True)

@@ -17,10 +17,25 @@ from .models import (
     User,
 )
 
-class AudioFileSerializer(serializers.ModelSerializer):
+
+class AudioUploadSerializer(serializers.ModelSerializer):
+    project_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = AudioFile
-        fields = ['audio']
+        fields = ['audio', 'project_id']
+        extra_kwargs = {
+            'audio': {'required': True}
+        }
+
+    def create(self, validated_data):
+        # Извлекаем project_id перед созданием AudioFile
+        project_id = validated_data.pop('project_id')
+        audio_file = AudioFile.objects.create(**validated_data)
+
+        # Сохраняем project_id в контексте для использования в view
+        self.context['project_id'] = project_id
+        return audio_file
 
 class CommissionSerializer(serializers.ModelSerializer):
     class Meta:
