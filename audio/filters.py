@@ -1,5 +1,5 @@
 import django_filters
-from .models import CommissionMember, DefenseSchedule, Protocol
+from .models import CommissionMember, DefenseSchedule, Protocol, Project
 
 
 class SecretaryFilter(django_filters.FilterSet):
@@ -29,3 +29,18 @@ class DefenseScheduleFilter(django_filters.FilterSet):
         ).distinct('ID')
 
 
+
+class ProjectFilter(django_filters.FilterSet):
+    defense_schedule_id = django_filters.NumberFilter(
+        method='filter_by_defense_schedule',
+        label='ID расписания защиты'
+    )
+
+    class Meta:
+        model = Project
+        fields = []
+
+    def filter_by_defense_schedule(self, queryset, name, value):
+        return queryset.filter(
+            student__protocol__ID_DefenseSchedule=value
+        ).distinct()
