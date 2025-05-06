@@ -1,21 +1,24 @@
+# tasks.py
 from celery import shared_task
-from django.core.files.storage import default_storage
 import os
+from django.core.files.storage import default_storage
 
+from .audio_service import AudioService
 from .transcription_service import TranscriptionService
-from ..services.audio_service import AudioService
 from ..models import AudioFile
+import logging
 
+logger = logging.getLogger(__name__)
 
-@shared_task(bind=True)
+@shared_task(bind=True, max_retries=3)
 def process_audio_task(self, audio_file_id, project_id):
+    audio_file = None
     try:
         audio_file = AudioFile.objects.get(id=audio_file_id)
         audio_file_path = default_storage.path(audio_file.audio.name)
 
-        # Конвертация и транскрибация
         if not audio_file.audio.name.endswith('.wav'):
-            converted_path = audio_file_path.replace(os.path.splitext(audio_file.audio.name)[1], '.wav')
+            converted_path = f"{audio_file_path}.wav"
             AudioService.convert_to_wav(audio_file_path, converted_path)
             audio_file_path = converted_path
 
@@ -23,19 +26,16 @@ def process_audio_task(self, audio_file_id, project_id):
         questions = TranscriptionService.extract_questions(transcribed_text)
         TranscriptionService.save_questions(questions, project_id)
 
-        # Удаление временных файлов
-        if os.path.exists(audio_file_path):
-            os.remove(audio_file_path)
-        if hasattr(audio_file, 'converted_path') and os.path.exists(audio_file.converted_path):
-            os.remove(audio_file.converted_path)
-
-        audio_file.delete()
-
         return {"status": "success", "transcribed_text": transcribed_text}
-    except Exception as e:
-        # Очистка в случае ошибки
-        if 'audio_file' in locals() and audio_file.id:
+
+    except Exception as exc:
+        logger.error(f"Audio processing failed: {str(exc)}")
+        if audio_file:
             audio_file.delete()
+        raise self.retry(exc=exc, countdown=60)
+
+    finally:
         if 'audio_file_path' in locals() and os.path.exists(audio_file_path):
             os.remove(audio_file_path)
-        raise self.retry(exc=e, countdown=60)
+        if audio_file:
+            audio_file.delete()

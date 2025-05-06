@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from audio.views.audio_views import upload_audio
+from audio.services.audio_views import upload_audio
 from audio.views.commission_views import CommissionViewSet
 from audio.views.defense_views import DefenseViewSet
 from audio.views.project_views import ProjectViewSet

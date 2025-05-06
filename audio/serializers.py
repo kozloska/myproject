@@ -1,5 +1,6 @@
 # audio/serializers.py
 from rest_framework import serializers
+
 from .models import (
     AudioFile,
     Commission,
@@ -17,7 +18,6 @@ from .models import (
     User,
 )
 
-
 class AudioUploadSerializer(serializers.ModelSerializer):
     project_id = serializers.IntegerField(write_only=True)
 
@@ -29,11 +29,8 @@ class AudioUploadSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        # Извлекаем project_id перед созданием AudioFile
         project_id = validated_data.pop('project_id')
         audio_file = AudioFile.objects.create(**validated_data)
-
-        # Сохраняем project_id в контексте для использования в view
         self.context['project_id'] = project_id
         return audio_file
 
