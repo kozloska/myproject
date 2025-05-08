@@ -2,17 +2,19 @@
 from celery import shared_task
 import os
 from django.core.files.storage import default_storage
-
-from .audio_service import AudioService
-from .transcription_service import TranscriptionService
-from ..models import AudioFile
+from celery import shared_task
+from audio.services.audio_service import AudioService
+from audio.services.transcription_service import TranscriptionService
+from audio.models import AudioFile
 import logging
+
 
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, max_retries=3)
 def process_audio_task(self, audio_file_id, project_id):
     audio_file = None
+    audio_file_path = None
     try:
         audio_file = AudioFile.objects.get(id=audio_file_id)
         audio_file_path = default_storage.path(audio_file.audio.name)
@@ -35,7 +37,7 @@ def process_audio_task(self, audio_file_id, project_id):
         raise self.retry(exc=exc, countdown=60)
 
     finally:
-        if 'audio_file_path' in locals() and os.path.exists(audio_file_path):
+        if audio_file_path and os.path.exists(audio_file_path):
             os.remove(audio_file_path)
         if audio_file:
             audio_file.delete()

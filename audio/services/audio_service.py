@@ -3,7 +3,6 @@ from pydub import AudioSegment
 from django.core.files.storage import default_storage
 import whisper
 import logging
-
 logger = logging.getLogger(__name__)
 
 class AudioService:
@@ -11,6 +10,8 @@ class AudioService:
 
     @classmethod
     def validate_audio_file(cls, file_name):
+        if not file_name:
+            raise ValueError("No file provided.")
         ext = os.path.splitext(file_name)[1].lower()
         if ext not in cls.ALLOWED_EXTENSIONS:
             raise ValueError(f"Unsupported file format. Allowed: {', '.join(cls.ALLOWED_EXTENSIONS)}")

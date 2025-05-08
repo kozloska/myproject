@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'audio',
     'drf_spectacular',
     'django_filters',
+    'django_celery_results',
 ]
 
 # Настройки документации
@@ -91,10 +92,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6380/0'  # если есть пароль
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6380/0'
-CELERY_BROKER_CONNECTION_RETRY = True
-CELERY_BROKER_CONNECTION_TIMEOUT = 30
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
