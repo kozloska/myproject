@@ -1,5 +1,3 @@
-# tasks.py
-from celery import shared_task
 import os
 from django.core.files.storage import default_storage
 from celery import shared_task
