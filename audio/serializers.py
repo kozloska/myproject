@@ -69,11 +69,18 @@ class SpecializationSerializer(serializers.ModelSerializer):
         model = Specialization
         fields = '__all__'
 
+
 class StudentSerializer(serializers.ModelSerializer):
     ID_Group = GroupSerializer(read_only=True)
+    grade = serializers.SerializerMethodField()
+
     class Meta:
         model = Student
         fields = '__all__'
+
+    def get_grade(self, obj):
+        last_protocol = obj.protocol_set.order_by('-ID').first()
+        return last_protocol.Grade if last_protocol else None
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:

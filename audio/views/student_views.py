@@ -1,16 +1,18 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
+from audio.filters import StudentFilter
 from audio.models import Student, Protocol
 from audio.serializers import StudentSerializer, UpdateGradeSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-
 class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
+    queryset = Student.objects.all().select_related(
+        'ID_Group', 'ID_Specialization', 'ID_Project'
+    ).prefetch_related('protocol_set')
     serializer_class = StudentSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['ID_Project']
+    filterset_class = StudentFilter
 
     @action(detail=False, methods=['patch'], serializer_class=UpdateGradeSerializer)
     def update_grade(self, request):

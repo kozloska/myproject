@@ -68,6 +68,11 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.Surname} {self.Name} {self.Patronymic}"
 
+    def get_grade(self, obj):
+        # Получаем последнюю оценку студента из протокола
+        last_protocol = Protocol.objects.filter(ID_Student=obj.ID).order_by('-ID').first()
+        return last_protocol.Grade if last_protocol else None
+
 
 class Project(models.Model):
     ID = models.AutoField(primary_key=True)
