@@ -116,13 +116,16 @@ class UpdateGradeSerializer(serializers.ModelSerializer):
 
 
 class UpdateDefenseTimeByProjectSerializer(serializers.ModelSerializer):
-    ID_Project = serializers.IntegerField(write_only=True)  # Явно указываем, что это входной параметр
+    ID_Project = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Protocol
         fields = ['ID_Project', 'DefenseStartTime']
         extra_kwargs = {
-            'DefenseStartTime': {'required': True}
+            'DefenseStartTime': {
+                'required': False,
+                'allow_null': True
+            }
         }
 
     def validate_ID_Project(self, value):

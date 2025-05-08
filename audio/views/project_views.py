@@ -18,7 +18,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             project_id = serializer.validated_data['ID_Project']
-            defense_time = serializer.validated_data['DefenseStartTime']
+            defense_time = serializer.validated_data.get('DefenseStartTime')
             updated = Protocol.objects.filter(
                 ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID')
             ).update(DefenseStartTime=defense_time)
