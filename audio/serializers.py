@@ -144,3 +144,23 @@ class TodayDefenseQuerySerializer(serializers.Serializer):
         if not Specialization.objects.filter(ID=value).exists():
             raise serializers.ValidationError("Специализация с таким ID не найдена")
         return value
+
+
+class UpdateDefenseTimeEndByProjectSerializer(serializers.ModelSerializer):
+    ID_Project = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Protocol
+        fields = ['ID_Project', 'DefenseEndTime']
+        extra_kwargs = {
+            'DefenseEndTime': {
+                'required': False,
+                'allow_null': True
+            }
+        }
+
+    def validate_ID_Project(self, value):
+        if not Student.objects.filter(ID_Project=value).exists():
+            raise serializers.ValidationError("Студенты с таким ID проекта не найдены")
+        return value
+

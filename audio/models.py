@@ -106,6 +106,7 @@ class Protocol(models.Model):
     ID_Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     ID_DefenseSchedule = models.ForeignKey('DefenseSchedule', on_delete=models.SET_NULL, null=True)
     DefenseStartTime = models.TimeField(blank=True, null=True)
+    DefenseEndTime = models.TimeField(blank=True, null=True)
     Number = models.CharField(max_length=30)
 
     class Meta:
