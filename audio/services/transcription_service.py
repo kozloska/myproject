@@ -20,5 +20,5 @@ class TranscriptionService:
         for question in questions:
             processed = cls.process_question(question)
             Question.objects.create(Text=processed, ID_Project=project)
-        project.Status = True
+        project.Status = "Готов"
         project.save()

@@ -25,6 +25,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID')
             ).update(DefenseStartTime=defense_time)
 
+            project = Project.objects.get(ID=project_id)
+            project.Status = "Эащита начата"
+            project.save()
             return Response({"message": "Протоколы успешно обновлены"}, status=status.HTTP_200_OK)
 
         except Exception as e:

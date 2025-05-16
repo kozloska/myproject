@@ -3,6 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
+from audio.models import Project
 from audio.task import process_audio_task
 import logging
 
@@ -22,6 +24,10 @@ def upload_audio(request):
 
         audio_file = serializer.save()
         project_id = serializer.context['project_id']
+
+        project = Project.objects.get(ID=project_id)
+        project.Status = "Вопросы расшифровываются"
+        project.save()
 
         # Запускаем асинхронную задачу
         process_audio_task.apply_async(args=[audio_file.id, project_id])

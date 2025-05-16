@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('Title', models.CharField(max_length=100)),
                 ('Supervisor', models.CharField(max_length=100)),
-                ('Status', models.BooleanField(default=False)),
+                ('Status', models.CharField(max_length=30)),
             ],
             options={
                 'db_table': 'Project',
