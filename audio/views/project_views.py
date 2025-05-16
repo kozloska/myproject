@@ -26,7 +26,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
             ).update(DefenseStartTime=defense_time)
 
             project = Project.objects.get(ID=project_id)
-            project.Status = "Эащита начата"
+            if defense_time is None:
+                project.Status = "Защита не начата"
+            else:
+                project.Status = "Защита начата"
             project.save()
             return Response({"message": "Протоколы успешно обновлены"}, status=status.HTTP_200_OK)
 
