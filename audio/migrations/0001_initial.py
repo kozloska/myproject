@@ -169,16 +169,4 @@ class Migration(migrations.Migration):
                 'db_table': 'Secretary/Specialization',
             },
         ),
-        migrations.CreateModel(
-            name='User',
-            fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('login', models.CharField(max_length=50, unique=True)),
-                ('password', models.CharField(max_length=255)),
-                ('full_name', models.CharField(max_length=100)),
-            ],
-            options={
-                'db_table': 'user',
-            },
-        ),
     ]

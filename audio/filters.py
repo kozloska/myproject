@@ -1,5 +1,5 @@
 import django_filters
-from .models import CommissionMember, DefenseSchedule, Protocol, Project, Student
+from .models import CommissionMember, DefenseSchedule, Protocol, Project, Student, Commission
 from django_filters import rest_framework as filters
 from audio.models import Student, DefenseSchedule
 
@@ -62,3 +62,22 @@ class StudentFilter(filters.FilterSet):
             'ID_Specialization': ['exact'],  # Фильтрация остается, но поле не выводится
         }
 
+from django_filters import rest_framework as filters
+
+class CommissionFilter(filters.FilterSet):
+    id_member = filters.NumberFilter(field_name='commissioncomposition__ID_Member')
+    role = filters.CharFilter(field_name='commissioncomposition__Role')
+
+    class Meta:
+        model = Commission
+        fields = ['ID', 'Name']  # Указываем только поля модели Commission
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        # Применяем фильтры одновременно, если оба указаны
+        if self.data.get('id_member') and self.data.get('role'):
+            return queryset.filter(
+                commissioncomposition__ID_Member=self.data['id_member'],
+                commissioncomposition__Role=self.data['role']
+            ).distinct()
+        return queryset

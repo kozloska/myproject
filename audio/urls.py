@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from audio.services.audio_views import upload_audio
+from audio.views.BitrixAuthView import BitrixAuthView
 from audio.views.commission_views import CommissionViewSet
 from audio.views.defense_views import DefenseViewSet
 from audio.views.project_views import ProjectViewSet
@@ -25,7 +26,8 @@ router.register(r'defenses', DefenseViewSet, basename='defense')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('upload-audio/', upload_audio, name='upload-audio')
+    path('upload-audio/', upload_audio, name='upload-audio'),
+    path('api/accounts/bitrix-auth/', BitrixAuthView.as_view(), name='bitrix-auth'),
 ]
 
 

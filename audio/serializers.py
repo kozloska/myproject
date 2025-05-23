@@ -14,7 +14,6 @@ from .models import (
     Protocol,
     CommissionComposition,
     SecretarySpecialization,
-    User,
 )
 
 class AudioUploadSerializer(serializers.ModelSerializer):
@@ -33,15 +32,25 @@ class AudioUploadSerializer(serializers.ModelSerializer):
         self.context['project_id'] = project_id
         return audio_file
 
-class CommissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Commission
-        fields = '__all__'
-
 class CommissionMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommissionMember
         fields = '__all__'
+
+class CommissionCompositionSerializer(serializers.ModelSerializer):
+    ID_Member = CommissionMemberSerializer(read_only=True)
+    class Meta:
+        model = CommissionComposition
+        fields = '__all__'
+
+class CommissionSerializer(serializers.ModelSerializer):
+    members = CommissionCompositionSerializer(many=True, read_only=True, source='commissioncomposition_set')
+    class Meta:
+        model = Commission
+        fields = '__all__'
+
+
+
 
 class DefenseScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,11 +100,6 @@ class ProtocolSerializer(serializers.ModelSerializer):
         model = Protocol
         fields = '__all__'
 
-class CommissionCompositionSerializer(serializers.ModelSerializer):
-    ID_Commission = CommissionSerializer(read_only=True)
-    class Meta:
-        model = CommissionComposition
-        fields = '__all__'
 
 class SecretarySpecializationSerializer(serializers.ModelSerializer):
     ID_Specialization = SpecializationSerializer(read_only=True)
@@ -103,10 +107,6 @@ class SecretarySpecializationSerializer(serializers.ModelSerializer):
         model = SecretarySpecialization
         fields = ['ID', 'ID_Specialization']
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
 
 class UpdateGradeSerializer(serializers.ModelSerializer):
     class Meta:

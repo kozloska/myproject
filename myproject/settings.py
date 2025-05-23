@@ -28,9 +28,12 @@ SECRET_KEY = 'django-insecure-0q8v+dbv==lfl3ha=efdm7a87^s#$@e4v!x4sr1r*3hqr&+hec
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# settings.py
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
+# settings.py
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2', '0.0.0.0', '172.20.10.5', '172.20.10.1']
+# Разрешить доступ с любых хостов при DEBUG (только для разработки!)
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -46,6 +49,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'django_celery_results',
+    'corsheaders',  # Добавьте это
 ]
 
 # Настройки документации
@@ -63,6 +67,7 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Должн
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -158,3 +163,34 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Или явно укажите разрешенные адреса:
+CORS_ALLOWED_ORIGINS = [
+    "http://172.20.10.5:8000",
+    "http://172.20.10.1:8000",  # Ваш IP
+    "https://localhost:9000",  # Если используете HTTPS
+    "http://localhost:9000",
+]
+
+
+# Разрешаем запросы с вашего фронтенда
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:9000",
+    "https://localhost:9000",  # Если используете HTTPS
+]
+
+# Дополнительно разрешаем методы и заголовки
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "OPTIONS",  # Важно для preflight-запросов
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "content-type",
+    "authorization",
+]
+
+# Настройки для Bitrix
+BITRIX_CLIENT_ID = "local.65581f0597f2b3.73164583"
+BITRIX_SECRET_KEY = "9FTLONYzoMlenvlQBm1TUTfRf1x7ZAUtJK948jeyM2mGmvH0z7"

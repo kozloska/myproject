@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class AudioFile(models.Model):
     audio = models.FileField(upload_to='audio/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -148,15 +147,6 @@ class CommissionComposition(models.Model):
     def __str__(self):
         return f"{self.ID_Member} - {self.Role}"
 
-class User(models.Model):
-    id = models.AutoField(primary_key=True)  # SERIAL в PostgreSQL соответствует AutoField
-    login = models.CharField(max_length=50, unique=True)
-    password = models.CharField(max_length=255)
-    full_name = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'user'  # Указываем имя таблицы в базе данных
-
 
 class SecretarySpecialization(models.Model):
     ID = models.AutoField(primary_key=True)
@@ -168,3 +158,4 @@ class SecretarySpecialization(models.Model):
 
     def __str__(self):
         return f"{self.ID_Specialization} - {self.ID_Secretary}"
+

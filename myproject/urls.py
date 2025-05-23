@@ -4,12 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from audio.views.BitrixAuthView import BitrixAuthView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
     path('api/', include('audio.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('', include('audio.urls')),  #
 ]
 
 if settings.DEBUG:
