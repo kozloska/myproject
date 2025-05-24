@@ -134,6 +134,7 @@ class Migration(migrations.Migration):
                 ('DefenseStartTime', models.TimeField(blank=True, null=True)),
                 ('DefenseEndTime', models.TimeField(blank=True, null=True)),
                 ('Number', models.CharField(max_length=30)),
+                ('Status', models.BooleanField()), 
             ],
             options={
                 'db_table': 'Protocol',

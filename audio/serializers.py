@@ -50,8 +50,6 @@ class CommissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
-
 class DefenseScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefenseSchedule
@@ -96,6 +94,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProtocolSerializer(serializers.ModelSerializer):
+    ID_Student = StudentSerializer()
     class Meta:
         model = Protocol
         fields = '__all__'

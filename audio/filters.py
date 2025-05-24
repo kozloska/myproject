@@ -2,6 +2,8 @@ import django_filters
 from .models import CommissionMember, DefenseSchedule, Protocol, Project, Student, Commission
 from django_filters import rest_framework as filters
 from audio.models import Student, DefenseSchedule
+from django.db.models import Q
+from .models import Protocol
 
 
 class SecretaryFilter(django_filters.FilterSet):
@@ -81,3 +83,30 @@ class CommissionFilter(filters.FilterSet):
                 commissioncomposition__Role=self.data['role']
             ).distinct()
         return queryset
+
+
+
+class ProtocolFilter(django_filters.FilterSet):
+    student_fio = django_filters.CharFilter(method='filter_by_student_fio')
+
+    class Meta:
+        model = Protocol
+        fields = ['ID_Student', 'Status', 'Year']
+
+    def filter_by_student_fio(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        # Убираем лишние пробелы и разбиваем на слова
+        words = value.strip().split()
+
+        # Создаем условия для каждого слова (ИЛИ между словами)
+        q_objects = Q()
+        for word in words:
+            q_objects |= (
+                    Q(ID_Student__Surname__icontains=word) |
+                    Q(ID_Student__Name__icontains=word) |
+                    Q(ID_Student__Patronymic__icontains=word)
+            )
+
+        return queryset.filter(q_objects)

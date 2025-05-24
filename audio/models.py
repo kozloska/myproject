@@ -107,7 +107,7 @@ class Protocol(models.Model):
     DefenseStartTime = models.TimeField(blank=True, null=True)
     DefenseEndTime = models.TimeField(blank=True, null=True)
     Number = models.CharField(max_length=30)
-
+    Status =  models.BooleanField()
     class Meta:
         db_table = 'Protocol'
 
