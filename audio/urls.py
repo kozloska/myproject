@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from audio.services.audio_views import upload_audio
 from audio.views.BitrixAuthView import BitrixAuthView
-from audio.views.commission_views import CommissionViewSet
+from audio.views.commissionComposition_views import CommissionCompositionViewSet
+from audio.views.commission_views import CommissionViewSet, CommissionMemberViewSet
 from audio.views.defense_views import DefenseViewSet
 from audio.views.project_views import ProjectViewSet
 from audio.views.protocol_views import ProtocolViewSet
@@ -22,6 +23,8 @@ router.register(r'questions', QuestionViewSet, basename='question')
 router.register(r'students', StudentViewSet, basename='student')
 router.register(r'protocols', ProtocolViewSet, basename='protocol')
 router.register(r'commissions', CommissionViewSet, basename='commission')
+router.register(r'commission_members', CommissionMemberViewSet, basename='commission_member')
+router.register(r'commission_compositions', CommissionCompositionViewSet, basename='commission_composition')
 router.register(r'defenses', DefenseViewSet, basename='defense')
 
 urlpatterns = [

@@ -43,6 +43,11 @@ class CommissionCompositionSerializer(serializers.ModelSerializer):
         model = CommissionComposition
         fields = '__all__'
 
+class Commission_CompositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommissionComposition
+        fields = '__all__'
+
 class CommissionSerializer(serializers.ModelSerializer):
     members = CommissionCompositionSerializer(many=True, read_only=True, source='commissioncomposition_set')
     class Meta:

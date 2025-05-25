@@ -76,12 +76,23 @@ class CommissionFilter(filters.FilterSet):
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
-        # Применяем фильтры одновременно, если оба указаны
-        if self.data.get('id_member') and self.data.get('role'):
+
+        # Получаем параметры из запроса
+        id_member = self.data.get('id_member')
+        role = self.data.get('role')
+
+        # Если указаны оба параметра, фильтруем комиссии
+        if id_member and role:
+            # Убеждаемся, что роль — "Секретарь"
+            if role != "Секретарь":
+                return queryset.none()  # Если роль не "Секретарь", возвращаем пустой результат
+
+            # Фильтруем комиссии, где член с id_member имеет роль "Секретарь"
             return queryset.filter(
-                commissioncomposition__ID_Member=self.data['id_member'],
-                commissioncomposition__Role=self.data['role']
+                commissioncomposition__ID_Member=id_member,
+                commissioncomposition__Role="Секретарь"
             ).distinct()
+
         return queryset
 
 
