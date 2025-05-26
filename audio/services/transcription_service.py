@@ -1,5 +1,7 @@
 import spacy
 from audio.models import Project, Question  # Импорт из текущего приложения
+import spacy
+from audio.models import Project, Question
 
 class TranscriptionService:
     nlp = spacy.load("ru_core_news_sm")
@@ -16,9 +18,17 @@ class TranscriptionService:
 
     @classmethod
     def save_questions(cls, questions, project_id):
-        project = Project.objects.get(ID=project_id)
-        for question in questions:
-            processed = cls.process_question(question)
-            Question.objects.create(Text=processed, ID_Project=project)
-        project.Status = "Готов"
-        project.save()
+        try:
+            project = Project.objects.get(id=project_id)
+            if not questions:
+                project.Status = "Готов (вопросы не найдены)"
+                project.save()
+                return
+            for question in questions:
+                processed = cls.process_question(question)
+                Question.objects.create(Text=processed, ID_Project=project)
+            project.Status = "Готов"
+            project.save()
+        except Project.DoesNotExist:
+            logger.error(f"Project with id {project_id} not found")
+            raise

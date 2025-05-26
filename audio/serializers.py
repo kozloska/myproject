@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 
 from .models import (
@@ -16,21 +17,23 @@ from .models import (
     SecretarySpecialization,
 )
 
-class AudioUploadSerializer(serializers.ModelSerializer):
-    project_id = serializers.IntegerField(write_only=True)
+class AudioUploadSerializer(serializers.Serializer):
+    audio = serializers.FileField(required=True)
+    project_id = serializers.IntegerField(required=True)
 
-    class Meta:
-        model = AudioFile
-        fields = ['audio', 'project_id']
-        extra_kwargs = {
-            'audio': {'required': True}
-        }
+    def validate(self, validated_data):
+        project_id = validated_data.get('project_id')
+        if not project_id:
+            raise serializers.ValidationError("project_id is required")
+        return validated_data
 
-    def create(self, validated_data):
-        project_id = validated_data.pop('project_id')
-        audio_file = AudioFile.objects.create(**validated_data)
-        self.context['project_id'] = project_id
-        return audio_file
+    def save(self):
+        audio_file = self.validated_data['audio']
+        project_id = self.validated_data['project_id']
+        # Сохраняем файл временно
+        file_path = default_storage.save(f"audio/{audio_file.name}", audio_file)
+        return {'file_path': default_storage.path(file_path), 'project_id': project_id}
+
 
 class CommissionMemberSerializer(serializers.ModelSerializer):
     class Meta:

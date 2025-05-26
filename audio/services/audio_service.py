@@ -1,8 +1,8 @@
 import os
 from pydub import AudioSegment
 from django.core.files.storage import default_storage
-import whisper
 import logging
+
 logger = logging.getLogger(__name__)
 
 class AudioService:
@@ -18,6 +18,8 @@ class AudioService:
 
     @classmethod
     def convert_to_wav(cls, input_path, output_path):
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"Input file not found: {input_path}")
         try:
             audio = AudioSegment.from_file(input_path)
             audio.export(output_path, format='wav')
