@@ -101,6 +101,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class ProtocolSerializer(serializers.ModelSerializer):
     ID_Student = StudentSerializer()
+    ID_DefenseSchedule = DefenseScheduleSerializer()
     class Meta:
         model = Protocol
         fields = '__all__'
