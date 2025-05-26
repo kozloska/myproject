@@ -44,6 +44,7 @@ class CommissionCompositionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class Commission_CompositionSerializer(serializers.ModelSerializer):
+    ID_Member = CommissionMemberSerializer()
     class Meta:
         model = CommissionComposition
         fields = '__all__'
@@ -56,6 +57,7 @@ class CommissionSerializer(serializers.ModelSerializer):
 
 
 class DefenseScheduleSerializer(serializers.ModelSerializer):
+    ID_Commission = CommissionSerializer()
     class Meta:
         model = DefenseSchedule
         fields = '__all__'
@@ -101,6 +103,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class ProtocolSerializer(serializers.ModelSerializer):
     ID_Student = StudentSerializer()
+    ID_DefenseSchedule = DefenseScheduleSerializer()
     class Meta:
         model = Protocol
         fields = '__all__'
