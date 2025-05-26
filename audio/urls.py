@@ -11,6 +11,7 @@ from audio.views.protocol_views import ProtocolViewSet
 from audio.views.question_views import QuestionViewSet
 from audio.views.secretarySpecialization_views import SecretarySpecializationViewSet
 from audio.views.secretary_views import SecretaryViewSet
+from audio.views.specialization_views import SpecializationViewSet
 from audio.views.student_views import StudentViewSet
 
 
@@ -26,6 +27,7 @@ router.register(r'commissions', CommissionViewSet, basename='commission')
 router.register(r'commission_members', CommissionMemberViewSet, basename='commission_member')
 router.register(r'commission_compositions', CommissionCompositionViewSet, basename='commission_composition')
 router.register(r'defenses', DefenseViewSet, basename='defense')
+router.register(r'specializations', SpecializationViewSet, basename='specialization')
 
 urlpatterns = [
     path('', include(router.urls)),
