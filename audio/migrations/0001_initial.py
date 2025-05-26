@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('Name', models.CharField(max_length=255, unique=True)),
+                ('ID_Specialization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.specialization')),
             ],
             options={
                 'db_table': 'Commission',
@@ -129,7 +130,8 @@ class Migration(migrations.Migration):
                 ('Year', models.IntegerField()),
                 ('Grade', models.CharField(max_length=30)),
                 ('ID_DefenseSchedule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='audio.defenseschedule')),
-                ('ID_Question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.question')),
+                ('ID_Question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='protocol_set', to='audio.question')),
+                ('ID_Question2', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='protocol_set_2', to='audio.question')),
                 ('ID_Student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.student')),
                 ('DefenseStartTime', models.TimeField(blank=True, null=True)),
                 ('DefenseEndTime', models.TimeField(blank=True, null=True)),
