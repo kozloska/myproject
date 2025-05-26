@@ -84,7 +84,8 @@ class SpecializationSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     ID_Group = GroupSerializer(read_only=True)
     grade = serializers.SerializerMethodField()
-
+    ID_Specialization = SpecializationSerializer(read_only=True)
+    ID_Project = ProjectSerializer(read_only=True)
     class Meta:
         model = Student
         fields = '__all__'
