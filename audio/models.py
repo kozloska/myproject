@@ -77,7 +77,7 @@ class Project(models.Model):
     Title = models.CharField(max_length=100)
     Supervisor = models.CharField(max_length=100)
     Status = models.CharField(max_length=30)
-
+    Text = models.TextField(unique=True)
     class Meta:
         db_table = 'Project'
 

@@ -81,6 +81,7 @@ class Migration(migrations.Migration):
                 ('Title', models.CharField(max_length=100)),
                 ('Supervisor', models.CharField(max_length=100)),
                 ('Status', models.CharField(max_length=30)),
+                ('Text', models.TextField(unique=True)),
             ],
             options={
                 'db_table': 'Project',
