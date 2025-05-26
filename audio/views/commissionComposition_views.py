@@ -11,3 +11,5 @@ from ..serializers import CommissionSerializer, CommissionCompositionSerializer,
 class CommissionCompositionViewSet(viewsets.ModelViewSet):
     queryset = CommissionComposition.objects.all()
     serializer_class = Commission_CompositionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['ID_Commission']
