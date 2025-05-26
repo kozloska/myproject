@@ -7,5 +7,5 @@ from ..filters import SecretaryFilter
 class SecretaryViewSet(viewsets.ModelViewSet):
     queryset = CommissionMember.objects.all()
     serializer_class = CommissionMemberSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend)
     filterset_class = SecretaryFilter

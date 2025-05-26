@@ -56,6 +56,7 @@ class CommissionSerializer(serializers.ModelSerializer):
 
 
 class DefenseScheduleSerializer(serializers.ModelSerializer):
+    ID_Commission =  CommissionSerializer(read_only=True)
     class Meta:
         model = DefenseSchedule
         fields = '__all__'
