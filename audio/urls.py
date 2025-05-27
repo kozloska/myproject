@@ -7,7 +7,7 @@ from audio.views.UploadExcelView import UploadExcelView, UploadDefenseScheduleVi
 from audio.views.commissionComposition_views import CommissionCompositionViewSet
 from audio.views.commission_views import CommissionViewSet, CommissionMemberViewSet
 from audio.views.defense_views import DefenseViewSet
-from audio.views.fio_to_dative import fio_to_dative
+from audio.views.fio_to_dative import  FIOToDativeView
 from audio.views.project_views import ProjectViewSet
 from audio.views.protocol_views import ProtocolViewSet
 from audio.views.question_views import QuestionViewSet

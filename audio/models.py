@@ -115,6 +115,8 @@ class DefenseSchedule(models.Model):
     ID = models.AutoField(primary_key=True)
     DateTime = models.DateTimeField()
     ID_Commission = models.ForeignKey('Commission', on_delete=models.CASCADE, null=True, blank=True)
+    Count = models.IntegerField()
+    Class = models.CharField(max_length=10)
     class Meta:
         db_table = 'DefenseSchedule'
 
