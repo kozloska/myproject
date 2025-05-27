@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 ('DateTime', models.DateTimeField()),
                 ('ID_Commission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.commission')),
                 ('Count', models.IntegerField()),
-                ('Class', models.CharField(max_length=50)),
+                ('Class', models.CharField(max_length=10)),
             ],
             options={
                 'db_table': 'DefenseSchedule',
@@ -85,6 +85,7 @@ class Migration(migrations.Migration):
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('Name', models.TextField(unique=True)),
                 ('Qualification', models.TextField(unique=True)),
+                ('Number', models.CharField(max_length=10)),
             ],
             options={
                 'db_table': 'Specialization',

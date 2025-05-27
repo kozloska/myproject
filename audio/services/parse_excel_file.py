@@ -10,6 +10,14 @@ from ..models import DefenseSchedule, Specialization, Group, Project, Student, P
 
 logger = logging.getLogger(__name__)
 
+import pandas as pd
+from datetime import datetime
+import logging
+from django.db import transaction
+from ..models import Specialization, Group, Project, Student, Protocol
+
+logger = logging.getLogger(__name__)
+
 def parse_excel_file(file_path, specialization_id, institute_id=None):
     """
     Парсит Excel-файл и сохраняет данные в базу данных, обеспечивая единичные записи для проектов и групп.
@@ -17,6 +25,8 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
     Поле Supervisor в Project обновляется из столбца 'Преподаватель' для каждой строки.
     Столбец 'Преподаватель' обязателен.
     Для каждого студента создаётся Protocol с ID_DefenseSchedule=None, Year=текущий год, Status=False.
+    Поле Protocol.Number формируется как '<порядковый номер за запуск для специализации><буквы из Specialization.Number>',
+    сбрасываясь до 1 в начале каждого нового года и запуска.
 
     Args:
         file_path (str): Путь к Excel-файлу.
@@ -39,10 +49,15 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
         # Проверяем существование Specialization
         try:
             specialization = Specialization.objects.get(ID=specialization_id)
-            logger.debug(f"Using specialization ID: {specialization_id}")
+            logger.debug(f"Using specialization ID: {specialization_id}, Number: {specialization.Number}")
         except Specialization.DoesNotExist:
             logger.error(f"Specialization with ID {specialization_id} not found")
             return {"status": "error", "message": f"Invalid specialization ID {specialization_id}"}
+
+        # Получаем буквы из поля Number специализации
+        letters = specialization.Number or ""  # Используем пустую строку, если букв нет
+        if not letters:
+            logger.warning(f"No letters found in Specialization.Number for specialization {specialization_id}, using empty letters")
 
         groups_added = 0
         students_added = 0
@@ -52,6 +67,9 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
 
         # Атомарная транзакция для целостности данных
         with transaction.atomic():
+            # Счётчик протоколов для текущего запуска
+            protocol_counter = 0
+
             for index, row in df.iterrows():
                 # Пропускаем строки с пустыми ФИО или Группа
                 if pd.isna(row['ФИО']) or pd.isna(row['Группа']):
@@ -137,6 +155,13 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
 
                 # Создаем Protocol для студента, если его ещё нет с ID_DefenseSchedule=None
                 if not Protocol.objects.filter(ID_Student=student, ID_DefenseSchedule=None).exists():
+                    # Увеличиваем счётчик для текущего запуска
+                    protocol_counter += 1
+
+                    # Формируем номер протокола: <порядковый номер><буквы>
+                    protocol_number_str = f"{protocol_counter}{letters}"
+
+                    # Создаём протокол с номером
                     protocol = Protocol.objects.create(
                         ID_Student=student,
                         Year=datetime.now().year,
@@ -146,10 +171,10 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
                         ID_Question2=None,
                         DefenseStartTime=None,
                         DefenseEndTime=None,
-                        Number=None
+                        Number=protocol_number_str
                     )
                     protocols_added += 1
-                    logger.debug(f"Created Protocol for student: {student}")
+                    logger.debug(f"Created Protocol for student: {student}, Number: {protocol_number_str}")
                 else:
                     logger.debug(f"Protocol already exists for student: {student}")
 
@@ -166,6 +191,11 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
     except Exception as e:
         logger.error(f"Error parsing Excel file: {str(e)}")
         return {"status": "error", "message": str(e)}
+
+
+
+
+
 
 
 
