@@ -28,22 +28,10 @@ class Commission(models.Model):
     def __str__(self):
         return self.Name
 
-class Institute(models.Model):
-    ID = models.AutoField(primary_key=True)
-    Name = models.CharField(max_length=100)
-
-    class Meta:
-        db_table = 'Institute'
-
-    def __str__(self):
-        return self.Name
-
 
 class Group(models.Model):
     ID = models.AutoField(primary_key=True)
     Name = models.CharField(max_length=50)
-    ID_Institute = models.ForeignKey(Institute, on_delete=models.CASCADE)
-
     class Meta:
         db_table = 'Group'
 
@@ -74,7 +62,7 @@ class Student(models.Model):
 
 class Project(models.Model):
     ID = models.AutoField(primary_key=True)
-    Title = models.CharField(max_length=100)
+    Title = models.TextField(unique=True)
     Supervisor = models.CharField(max_length=100)
     Status = models.CharField(max_length=30)
     Text = models.TextField(unique=True)
@@ -126,7 +114,7 @@ class Protocol(models.Model):
 class DefenseSchedule(models.Model):
     ID = models.AutoField(primary_key=True)
     DateTime = models.DateTimeField()
-    ID_Commission = models.ForeignKey('Commission', on_delete=models.CASCADE)
+    ID_Commission = models.ForeignKey('Commission', on_delete=models.CASCADE, null=True, blank=True)
     class Meta:
         db_table = 'DefenseSchedule'
 

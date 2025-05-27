@@ -7,7 +7,6 @@ from .models import (
     CommissionMember,
     DefenseSchedule,
     Group,
-    Institute,
     Project,
     Specialization,
     Student,
@@ -70,10 +69,6 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = '__all__'
 
-class InstituteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Institute
-        fields = '__all__'
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:

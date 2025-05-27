@@ -3,9 +3,11 @@ from rest_framework.routers import DefaultRouter
 
 from audio.services.audio_views import upload_audio
 from audio.views.BitrixAuthView import BitrixAuthView
+from audio.views.UploadExcelView import UploadExcelView, UploadDefenseScheduleView
 from audio.views.commissionComposition_views import CommissionCompositionViewSet
 from audio.views.commission_views import CommissionViewSet, CommissionMemberViewSet
 from audio.views.defense_views import DefenseViewSet
+from audio.views.fio_to_dative import fio_to_dative
 from audio.views.project_views import ProjectViewSet
 from audio.views.protocol_views import ProtocolViewSet
 from audio.views.question_views import QuestionViewSet
@@ -33,6 +35,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path('upload-audio/', upload_audio, name='upload-audio'),
     path('api/accounts/bitrix-auth/', BitrixAuthView.as_view(), name='bitrix-auth'),
+    path('upload-excel/', UploadExcelView.as_view(), name='upload_excel'),
+    path('upload-defense-schedule/', UploadDefenseScheduleView.as_view(), name='upload_defense_schedule'),
+    path('fio_to_dative/', fio_to_dative, name='fio_to_dative'),
 ]
 
 

@@ -65,20 +65,10 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Institute',
-            fields=[
-                ('ID', models.AutoField(primary_key=True, serialize=False)),
-                ('Name', models.CharField(max_length=100)),
-            ],
-            options={
-                'db_table': 'Institute',
-            },
-        ),
-        migrations.CreateModel(
             name='Project',
             fields=[
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
-                ('Title', models.CharField(max_length=100)),
+                ('Title', models.TextField(unique=True)),
                 ('Supervisor', models.CharField(max_length=100)),
                 ('Status', models.CharField(max_length=30)),
                 ('Text', models.TextField(unique=True)),
@@ -142,11 +132,6 @@ class Migration(migrations.Migration):
             options={
                 'db_table': 'Protocol',
             },
-        ),
-        migrations.AddField(
-            model_name='group',
-            name='ID_Institute',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.institute'),
         ),
         migrations.CreateModel(
             name='CommissionComposition',
