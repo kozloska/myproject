@@ -1,11 +1,12 @@
-import re
-from datetime import datetime
 import pandas as pd
-from django.db import transaction
-from audio.models import Group, Student, Project, Specialization, Protocol, DefenseSchedule, Commission
-import logging
+import openpyxl
+from openpyxl.utils import get_column_letter
 from datetime import datetime
+import re
+import logging
+from django.db import transaction
 from django.utils import timezone
+from ..models import DefenseSchedule, Specialization, Group, Project, Student, Protocol
 
 logger = logging.getLogger(__name__)
 
@@ -170,10 +171,10 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
 
 def parse_defense_schedule(file_path):
     """
-    Парсит Excel-файл с расписанием защит, создавая записи в DefenseSchedule и обновляя существующие Protocol.
+    Парсит Excel-файл с расписанием защит, создавая новые записи в DefenseSchedule и обновляя существующие Protocol.
     Использует существующую Specialization, парсит даты, время и аудиторию из объединённой ячейки.
-    Создаёт одну запись DefenseSchedule на временной слот, с Count равным количеству строк проектов в таблице.
-    Связывает существующие протоколы с DefenseSchedule по проектам и группам, независимо от Count.
+    Создаёт новую запись DefenseSchedule на временной слот, с Count равным количеству строк, объединённых в столбце B (аудитория).
+    Обновляет существующие протоколы, привязывая их к новому DefenseSchedule, даже если они уже связаны с другим.
     Добавляет аудиторию в поле Class.
 
     Args:
@@ -183,21 +184,19 @@ def parse_defense_schedule(file_path):
         dict: Результат обработки (успех/ошибка, количество добавленных и связанных записей).
     """
     try:
-        # Читаем все страницы Excel
-        xl = pd.read_excel(file_path, sheet_name=None, header=None)
+        # Загружаем Excel-файл с помощью openpyxl
+        workbook = openpyxl.load_workbook(file_path, data_only=True)
 
         defenses_added = 0
         protocols_linked = 0
 
         with transaction.atomic():
-            for sheet_name, df in xl.items():
+            for sheet_name in workbook.sheetnames:
+                sheet = workbook[sheet_name]
                 logger.info(f"Processing sheet: {sheet_name}")
 
                 # Первая строка — название специальности
-                if df.empty or len(df) < 1:
-                    logger.warning(f"Sheet {sheet_name} is empty")
-                    continue
-                specialization_name = str(df.iloc[0, 0]).strip()
+                specialization_name = str(sheet['A1'].value).strip() if sheet['A1'].value else None
                 if not specialization_name or specialization_name.lower() == 'nan':
                     logger.error(f"No specialization name found in sheet {sheet_name}")
                     continue
@@ -216,22 +215,20 @@ def parse_defense_schedule(file_path):
                 current_auditorium = None
                 table_rows = []
                 in_table = False
+                merged_row_count = 0
 
-                for index, row in df.iterrows():
+                # Проходим по строкам листа
+                for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                     # Отладка: выводим содержимое строки
-                    logger.debug(f"Row {index + 2}: {list(row)}")
-
-                    # Пропускаем первую строку (специальность)
-                    if index == 0:
-                        continue
+                    logger.debug(f"Row {row_idx}: {list(row)}")
 
                     # Ищем строку с датой
-                    row_str = str(row[0]).strip()
+                    row_str = str(row[0]).strip() if row[0] else ''
                     date_match = re.match(r'(\d{2}\.\d{2}\.\d{4})(?:\s*-\s*\d{2}\.\d{2}\.\d{4})?\s*-\s*[^\s]+', row_str)
                     if date_match:
                         # Если уже есть собранные строки таблицы, создаём DefenseSchedule
                         if table_rows and current_date and current_time_range:
-                            slot_count = len([r for r in table_rows if r[1]])  # Count only rows with project titles
+                            slot_count = merged_row_count  # Количество объединённых строк в столбце B
                             time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', current_time_range)
                             if time_match:
                                 start_time_str, end_time_str = time_match.groups()
@@ -240,31 +237,28 @@ def parse_defense_schedule(file_path):
                                 except ValueError as e:
                                     logger.error(f"Invalid time format for DefenseSchedule: {current_time_range}, error: {str(e)}")
                                     table_rows = []
+                                    merged_row_count = 0
                                     in_table = False
                                     continue
 
-                                # Создаём запись DefenseSchedule с аудиторией
+                                # Создаём новую запись DefenseSchedule
                                 defense_datetime = timezone.make_aware(datetime.combine(current_date, start_time))
-                                defense_schedule, created = DefenseSchedule.objects.get_or_create(
+                                defense_schedule = DefenseSchedule.objects.create(
                                     DateTime=defense_datetime,
-                                    defaults={'ID_Commission': None, 'Count': slot_count, 'Class': current_auditorium}
+                                    ID_Commission=None,
+                                    Count=slot_count,
+                                    Class=current_auditorium
                                 )
-                                if created:
-                                    defenses_added += 1
-                                    logger.debug(f"Created DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
-                                else:
-                                    defense_schedule.Count = slot_count
-                                    defense_schedule.Class = current_auditorium
-                                    defense_schedule.save()
-                                    logger.debug(f"Updated DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
+                                defenses_added += 1
+                                logger.debug(f"Created DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
 
-                                # Связываем протоколы для всех проектов в слоте, независимо от Count
+                                # Связываем протоколы для всех проектов в слоте, обновляя существующие
                                 for group_name, project_title in table_rows:
                                     if not group_name or not project_title:
                                         continue
                                     try:
-                                        group = Group.objects.get(Name=group_name.strip())
-                                        project = Project.objects.get(Title=project_title.strip())
+                                        group = Group.objects.get(Name=str(group_name).strip())
+                                        project = Project.objects.get(Title=str(project_title).strip())
                                     except (Group.DoesNotExist, Project.DoesNotExist) as e:
                                         logger.warning(f"Group or Project not found for {group_name}, {project_title}: {str(e)}")
                                         continue
@@ -278,13 +272,10 @@ def parse_defense_schedule(file_path):
                                         protocols = Protocol.objects.filter(ID_Student=student)
                                         logger.debug(f"Found {protocols.count()} protocols for student {student}")
                                         for protocol in protocols:
-                                            if protocol.ID_DefenseSchedule and protocol.ID_DefenseSchedule != defense_schedule:
-                                                logger.debug(f"Skipping protocol {protocol.ID} already linked to another schedule")
-                                                continue
-                                            protocol.ID_DefenseSchedule = defense_schedule
+                                            protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь, даже если уже привязан
                                             protocol.save()
                                             protocols_linked += 1
-                                            logger.debug(f"Linked Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
+                                            logger.debug(f"Updated Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
                             else:
                                 logger.error(f"Time range not matched for {current_time_range}")
 
@@ -293,91 +284,58 @@ def parse_defense_schedule(file_path):
                         try:
                             current_date = datetime.strptime(date_str, '%d.%m.%Y')
                             logger.debug(f"Found date: {date_str}")
-                            # Сохраняем предыдущие table_rows для обработки перед обновлением
-                            if table_rows and current_time_range:
-                                slot_count = len([r for r in table_rows if r[1]])
-                                time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', current_time_range)
-                                if time_match:
-                                    start_time_str, end_time_str = time_match.groups()
-                                    try:
-                                        start_time = datetime.strptime(start_time_str, '%H:%M').time()
-                                    except ValueError as e:
-                                        logger.error(f"Invalid time format for DefenseSchedule: {current_time_range}, error: {str(e)}")
-                                        continue
-                                    defense_datetime = timezone.make_aware(datetime.combine(current_date, start_time))
-                                    defense_schedule, created = DefenseSchedule.objects.get_or_create(
-                                        DateTime=defense_datetime,
-                                        defaults={'ID_Commission': None, 'Count': slot_count, 'Class': current_auditorium}
-                                    )
-                                    if created:
-                                        defenses_added += 1
-                                        logger.debug(f"Created DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
-                                    else:
-                                        defense_schedule.Count = slot_count
-                                        defense_schedule.Class = current_auditorium
-                                        defense_schedule.save()
-                                        logger.debug(f"Updated DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
-
-                                    for group_name, project_title in table_rows:
-                                        if not group_name or not project_title:
-                                            continue
-                                        try:
-                                            group = Group.objects.get(Name=group_name.strip())
-                                            project = Project.objects.get(Title=project_title.strip())
-                                        except (Group.DoesNotExist, Project.DoesNotExist) as e:
-                                            logger.warning(f"Group or Project not found for {group_name}, {project_title}: {str(e)}")
-                                            continue
-                                        students = Student.objects.filter(
-                                            ID_Project=project,
-                                            ID_Group=group,
-                                            ID_Specialization=specialization
-                                        )
-                                        for student in students:
-                                            protocols = Protocol.objects.filter(ID_Student=student)
-                                            logger.debug(f"Found {protocols.count()} protocols for student {student}")
-                                            for protocol in protocols:
-                                                if protocol.ID_DefenseSchedule and protocol.ID_DefenseSchedule != defense_schedule:
-                                                    logger.debug(f"Skipping protocol {protocol.ID} already linked to another schedule")
-                                                    continue
-                                                protocol.ID_DefenseSchedule = defense_schedule
-                                                protocol.save()
-                                                protocols_linked += 1
-                                                logger.debug(f"Linked Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
                             table_rows = []
+                            merged_row_count = 0
                             current_time_range = None
                             current_auditorium = None
                             in_table = False
                         except ValueError:
-                            logger.error(f"Invalid date format at row {index + 2}: {row_str}")
+                            logger.error(f"Invalid date format at row {row_idx}: {row_str}")
                         continue
 
                     # Ищем строку с временем (например, "13:45-17:00")
-                    time_str = str(row[0]).strip() if pd.notna(row[0]) else ''
+                    time_str = str(row[0]).strip() if row[0] else ''
                     time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', time_str)
                     if time_match:
                         start_time_str, end_time_str = time_match.groups()
                         current_time_range = f"{start_time_str}-{end_time_str}"
-                        current_auditorium = str(row[1]).strip() if pd.notna(row[1]) else None
+                        current_auditorium = str(row[1]).strip() if row[1] else None
                         logger.debug(f"Found time range: {current_time_range}, auditorium: {current_auditorium}")
+
+                        # Определяем количество объединённых строк в столбце B
+                        merged_row_count = 0
+                        for merged_range in sheet.merged_cells.ranges:
+                            # Проверяем, что объединение находится в столбце B (column=2)
+                            if merged_range.min_col == 2 and merged_range.max_col == 2:
+                                # Проверяем, что объединение начинается в текущей строке
+                                if merged_range.min_row == row_idx:
+                                    merged_row_count = merged_range.max_row - merged_range.min_row + 1
+                                    logger.debug(f"Merged rows in column B at row {row_idx}: {merged_row_count}")
+                                    break
+                        if merged_row_count == 0:
+                            logger.warning(f"No merged cells found in column B at row {row_idx}, defaulting to 1")
+                            merged_row_count = 1  # Если объединения нет, считаем 1 строку
                         continue
 
                     # Ищем заголовок таблицы
                     if row[0] == 'время' and row[1] == 'Аудитория' and row[2] == 'группа' and row[3] == 'тема проекта':
-                        logger.debug(f"Found table header at row {index + 2}")
+                        logger.debug(f"Found table header at row {row_idx}")
                         in_table = True
                         continue
 
                     # Обрабатываем строки таблицы
                     if in_table:
-                        group_name = str(row[2]).strip() if pd.notna(row[2]) else ''
-                        project_title = str(row[3]).strip() if pd.notna(row[3]) else ''
-                        if group_name or project_title:  # Добавляем только строки с данными
+                        group_name = str(row[2]).strip() if row[2] else ''
+                        project_title = str(row[3]).strip() if row[3] else ''
+                        if group_name or project_title:  # Добавляем в table_rows только строки с данными
                             table_rows.append((group_name, project_title))
                             logger.debug(f"Added table row: {group_name}, {project_title}")
+                        else:
+                            logger.debug(f"Empty table row at row {row_idx}")
 
                 # Обработка последней таблицы после завершения цикла
-                if table_rows and current_date and current_time_range:
-                    slot_count = len([r for r in table_rows if r[1]])  # Count only rows with project titles
+                if current_date and current_time_range:
+                    slot_count = merged_row_count  # Количество объединённых строк в столбце B
                     time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', current_time_range)
                     if time_match:
                         start_time_str, end_time_str = time_match.groups()
@@ -387,28 +345,24 @@ def parse_defense_schedule(file_path):
                             logger.error(f"Invalid time format for DefenseSchedule: {current_time_range}, error: {str(e)}")
                             continue
 
-                        # Создаём запись DefenseSchedule с аудиторией
+                        # Создаём новую запись DefenseSchedule
                         defense_datetime = timezone.make_aware(datetime.combine(current_date, start_time))
-                        defense_schedule, created = DefenseSchedule.objects.get_or_create(
+                        defense_schedule = DefenseSchedule.objects.create(
                             DateTime=defense_datetime,
-                            defaults={'ID_Commission': None, 'Count': slot_count, 'Class': current_auditorium}
+                            ID_Commission=None,
+                            Count=slot_count,
+                            Class=current_auditorium
                         )
-                        if created:
-                            defenses_added += 1
-                            logger.debug(f"Created DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
-                        else:
-                            defense_schedule.Count = slot_count
-                            defense_schedule.Class = current_auditorium
-                            defense_schedule.save()
-                            logger.debug(f"Updated DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
+                        defenses_added += 1
+                        logger.debug(f"Created DefenseSchedule: {defense_datetime}, Count: {slot_count}, Class: {current_auditorium}")
 
-                        # Связываем протоколы для всех проектов в слоте, независимо от Count
+                        # Связываем протоколы для всех проектов в слоте, обновляя существующие
                         for group_name, project_title in table_rows:
                             if not group_name or not project_title:
                                 continue
                             try:
-                                group = Group.objects.get(Name=group_name.strip())
-                                project = Project.objects.get(Title=project_title.strip())
+                                group = Group.objects.get(Name=str(group_name).strip())
+                                project = Project.objects.get(Title=str(project_title).strip())
                             except (Group.DoesNotExist, Project.DoesNotExist) as e:
                                 logger.warning(f"Group or Project not found for {group_name}, {project_title}: {str(e)}")
                                 continue
@@ -422,13 +376,10 @@ def parse_defense_schedule(file_path):
                                 protocols = Protocol.objects.filter(ID_Student=student)
                                 logger.debug(f"Found {protocols.count()} protocols for student {student}")
                                 for protocol in protocols:
-                                    if protocol.ID_DefenseSchedule and protocol.ID_DefenseSchedule != defense_schedule:
-                                        logger.debug(f"Skipping protocol {protocol.ID} already linked to another schedule")
-                                        continue
-                                    protocol.ID_DefenseSchedule = defense_schedule
+                                    protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь
                                     protocol.save()
                                     protocols_linked += 1
-                                    logger.debug(f"Linked Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
+                                    logger.debug(f"Updated Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
                     else:
                         logger.error(f"Time range not matched for {current_time_range} in final table")
 
