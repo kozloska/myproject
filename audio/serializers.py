@@ -46,10 +46,18 @@ class CommissionCompositionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class Commission_CompositionSerializer(serializers.ModelSerializer):
-    ID_Member = CommissionMemberSerializer()
+    ID_Member = serializers.PrimaryKeyRelatedField(queryset=CommissionMember.objects.all())
+
     class Meta:
         model = CommissionComposition
         fields = '__all__'
+
+    def to_representation(self, instance):
+        # Получаем стандартное представление
+        representation = super().to_representation(instance)
+        # Заменяем ID на полный объект CommissionMember
+        representation['ID_Member'] = CommissionMemberSerializer(instance.ID_Member).data
+        return representation
 
 class CommissionSerializer(serializers.ModelSerializer):
     members = CommissionCompositionSerializer(many=True, read_only=True, source='commissioncomposition_set')
