@@ -37,7 +37,7 @@ urlpatterns = [
     path('api/accounts/bitrix-auth/', BitrixAuthView.as_view(), name='bitrix-auth'),
     path('upload-excel/', UploadExcelView.as_view(), name='upload_excel'),
     path('upload-defense-schedule/', UploadDefenseScheduleView.as_view(), name='upload_defense_schedule'),
-    path('fio_to_dative/', fio_to_dative, name='fio_to_dative'),
+    path('api/fio_to_dative/', FIOToDativeView.as_view(), name='fio_to_dative'),
 ]
 
 

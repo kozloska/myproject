@@ -170,3 +170,7 @@ class UpdateDefenseTimeEndByProjectSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Студенты с таким ID проекта не найдены")
         return value
 
+class FIOSerializer(serializers.Serializer):
+    fio = serializers.CharField(max_length=255, required=True)
+    dative_fio = serializers.CharField(max_length=255, read_only=True)
+
