@@ -72,7 +72,7 @@ class CommissionFilter(filters.FilterSet):
 
     class Meta:
         model = Commission
-        fields = ['ID', 'Name']  # Указываем только поля модели Commission
+        fields = ['ID', 'Name', 'ID_Specialization']  # Указываем только поля модели Commission
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
