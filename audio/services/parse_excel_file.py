@@ -6,6 +6,21 @@ import re
 import logging
 from django.db import transaction
 from django.utils import timezone
+from sympy import false
+
+from ..models import DefenseSchedule, Specialization, Group, Project, Student, Protocol
+
+logger = logging.getLogger(__name__)
+from django.db.models import Q
+import pandas as pd
+import pandas as pd
+import openpyxl
+from openpyxl.utils import get_column_letter
+from datetime import datetime
+import re
+import logging
+from django.db import transaction
+from django.utils import timezone
 from ..models import DefenseSchedule, Specialization, Group, Project, Student, Protocol
 
 logger = logging.getLogger(__name__)
@@ -16,7 +31,6 @@ import logging
 from django.db import transaction
 from ..models import Specialization, Group, Project, Student, Protocol
 
-logger = logging.getLogger(__name__)
 
 def parse_excel_file(file_path, specialization_id, institute_id=None):
     """
@@ -195,17 +209,13 @@ def parse_excel_file(file_path, specialization_id, institute_id=None):
 
 
 
-
-
-
-
 def parse_defense_schedule(file_path):
     """
     Парсит Excel-файл с расписанием защит, создавая новые записи в DefenseSchedule и обновляя существующие Protocol.
     Использует существующую Specialization, парсит даты, время и аудиторию из объединённой ячейки.
     Создаёт новую запись DefenseSchedule на временной слот, с Count равным количеству строк, объединённых в столбце B (аудитория).
     Обновляет существующие протоколы, привязывая их к новому DefenseSchedule, даже если они уже связаны с другим.
-    Добавляет аудиторию в поле Class.
+    Добавляет аудиторию в поле Class. Извлекает все проекты из столбца D в пределах объединённых строк.
 
     Args:
         file_path (str): Путь к Excel-файлу.
@@ -246,6 +256,8 @@ def parse_defense_schedule(file_path):
                 table_rows = []
                 in_table = False
                 merged_row_count = 0
+                table_start_row = None
+                time_row_found = False
 
                 # Проходим по строкам листа
                 for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
@@ -269,6 +281,8 @@ def parse_defense_schedule(file_path):
                                     table_rows = []
                                     merged_row_count = 0
                                     in_table = False
+                                    table_start_row = None
+                                    time_row_found = False
                                     continue
 
                                 # Создаём новую запись DefenseSchedule
@@ -302,7 +316,7 @@ def parse_defense_schedule(file_path):
                                         protocols = Protocol.objects.filter(ID_Student=student)
                                         logger.debug(f"Found {protocols.count()} protocols for student {student}")
                                         for protocol in protocols:
-                                            protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь, даже если уже привязан
+                                            protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь
                                             protocol.save()
                                             protocols_linked += 1
                                             logger.debug(f"Updated Protocol {protocol.ID} to DefenseSchedule {defense_schedule.ID} for student {student}")
@@ -319,49 +333,64 @@ def parse_defense_schedule(file_path):
                             current_time_range = None
                             current_auditorium = None
                             in_table = False
+                            table_start_row = None
+                            time_row_found = False
                         except ValueError:
                             logger.error(f"Invalid date format at row {row_idx}: {row_str}")
-                        continue
-
-                    # Ищем строку с временем (например, "13:45-17:00")
-                    time_str = str(row[0]).strip() if row[0] else ''
-                    time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', time_str)
-                    if time_match:
-                        start_time_str, end_time_str = time_match.groups()
-                        current_time_range = f"{start_time_str}-{end_time_str}"
-                        current_auditorium = str(row[1]).strip() if row[1] else None
-                        logger.debug(f"Found time range: {current_time_range}, auditorium: {current_auditorium}")
-
-                        # Определяем количество объединённых строк в столбце B
-                        merged_row_count = 0
-                        for merged_range in sheet.merged_cells.ranges:
-                            # Проверяем, что объединение находится в столбце B (column=2)
-                            if merged_range.min_col == 2 and merged_range.max_col == 2:
-                                # Проверяем, что объединение начинается в текущей строке
-                                if merged_range.min_row == row_idx:
-                                    merged_row_count = merged_range.max_row - merged_range.min_row + 1
-                                    logger.debug(f"Merged rows in column B at row {row_idx}: {merged_row_count}")
-                                    break
-                        if merged_row_count == 0:
-                            logger.warning(f"No merged cells found in column B at row {row_idx}, defaulting to 1")
-                            merged_row_count = 1  # Если объединения нет, считаем 1 строку
                         continue
 
                     # Ищем заголовок таблицы
                     if row[0] == 'время' and row[1] == 'Аудитория' and row[2] == 'группа' and row[3] == 'тема проекта':
                         logger.debug(f"Found table header at row {row_idx}")
                         in_table = True
+                        table_start_row = row_idx + 1  # Следующая строка после заголовка
                         continue
 
-                    # Обрабатываем строки таблицы
-                    if in_table:
+                    # Ищем строку с временем и извлекаем проект
+                    if in_table and row_idx == table_start_row and not time_row_found:
+                        time_str = str(row[0]).strip() if row[0] else ''
+                        time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', time_str)
+                        if time_match:
+                            start_time_str, end_time_str = time_match.groups()
+                            current_time_range = f"{start_time_str}-{end_time_str}"
+                            current_auditorium = str(row[1]).strip() if row[1] else None
+                            logger.debug(f"Found time range: {current_time_range}, auditorium: {current_auditorium}")
+
+                            # Извлекаем группу и проект из строки с временем
+                            group_name = str(row[2]).strip() if row[2] else ''
+                            project_title = str(row[3]).strip() if row[3] else ''
+                            if project_title:  # Добавляем только если есть проект
+                                table_rows.append((group_name, project_title))
+                                logger.debug(f"Added table row from time row: {group_name}, {project_title}")
+
+                            # Определяем количество объединённых строк в столбце B
+                            merged_row_count = 0
+                            for merged_range in sheet.merged_cells.ranges:
+                                if merged_range.min_col == 2 and merged_range.max_col == 2:
+                                    if merged_range.min_row == row_idx:
+                                        merged_row_count = merged_range.max_row - merged_range.min_row + 1
+                                        logger.debug(f"Merged rows in column B at row {row_idx}: {merged_row_count}")
+                                        break
+                            if merged_row_count == 0:
+                                logger.warning(f"No merged cells found in column B at row {row_idx}, defaulting to 1")
+                                merged_row_count = 1
+                            time_row_found = True
+                            table_start_row = row_idx + 1  # Данные начинаются со следующей строки
+                            continue
+
+                    # Обрабатываем все строки таблицы в пределах merged_row_count
+                    if in_table and row_idx >= table_start_row and row_idx < table_start_row + merged_row_count:
                         group_name = str(row[2]).strip() if row[2] else ''
                         project_title = str(row[3]).strip() if row[3] else ''
-                        if group_name or project_title:  # Добавляем в table_rows только строки с данными
+                        if project_title:  # Добавляем только если есть проект
                             table_rows.append((group_name, project_title))
                             logger.debug(f"Added table row: {group_name}, {project_title}")
                         else:
                             logger.debug(f"Empty table row at row {row_idx}")
+                    elif in_table and row_idx >= table_start_row + merged_row_count:
+                        in_table = False
+                        table_start_row = None
+                        time_row_found = False
 
                 # Обработка последней таблицы после завершения цикла
                 if current_date and current_time_range:
@@ -403,7 +432,7 @@ def parse_defense_schedule(file_path):
                                 ID_Specialization=specialization
                             )
                             for student in students:
-                                protocols = Protocol.objects.filter(ID_Student=student)
+                                protocols = Protocol.objects.filter(ID_Student=student, Status=false)
                                 logger.debug(f"Found {protocols.count()} protocols for student {student}")
                                 for protocol in protocols:
                                     protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь
