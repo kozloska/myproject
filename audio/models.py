@@ -78,7 +78,7 @@ class Question(models.Model):
     ID = models.AutoField(primary_key=True)
     Text = models.TextField()
     ID_Project = models.ForeignKey(Project, on_delete=models.CASCADE)
-
+    Status = models.BooleanField()
     class Meta:
         db_table = 'Question'
 

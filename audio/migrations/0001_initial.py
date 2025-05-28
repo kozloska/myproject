@@ -112,6 +112,7 @@ class Migration(migrations.Migration):
                 ('ID', models.AutoField(primary_key=True, serialize=False)),
                 ('Text', models.TextField()),
                 ('ID_Project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='audio.project')),
+                ('Status', models.BooleanField()),
             ],
             options={
                 'db_table': 'Question',

@@ -8,5 +8,5 @@ class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['ID_Project']
+    filterset_fields = ['ID_Project', 'Status']
 
