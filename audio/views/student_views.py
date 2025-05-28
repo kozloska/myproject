@@ -24,12 +24,32 @@ class StudentViewSet(viewsets.ModelViewSet):
 
         try:
             protocol = Protocol.objects.get(ID_Student=student_id)
-            protocol.Grade = new_grade
-            protocol.save()
-            return Response({"status": "Оценка обновлена!"})
+            student = Student.objects.get(ID=student_id)
+
+            if new_grade == "Пересдача":
+                # Не устанавливаем оценку, сбрасываем ID_DefenseSchedule
+                protocol.ID_DefenseSchedule = None
+                protocol.save()
+
+                # Обновляем статус проекта
+                if student.ID_Project:
+                    student.ID_Project.Status = "Защита не начата"
+                    student.ID_Project.save()
+
+                return Response({"status": "Установлен статус пересдачи, защита сброшена"})
+            else:
+                # Обычная логика обновления оценки
+                protocol.Grade = new_grade
+                protocol.save()
+                return Response({"status": "Оценка обновлена!"})
 
         except Protocol.DoesNotExist:
             return Response(
                 {"error": "Протокол для этого студента не найден"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Student.DoesNotExist:
+            return Response(
+                {"error": "Студент не найден"},
                 status=status.HTTP_404_NOT_FOUND
             )

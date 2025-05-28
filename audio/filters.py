@@ -121,3 +121,13 @@ class ProtocolFilter(django_filters.FilterSet):
             )
 
         return queryset.filter(q_objects)
+
+
+
+class StudentFilter(django_filters.FilterSet):
+    ID_Project = django_filters.NumberFilter(field_name='ID_Project__ID')
+    protocol__Status = django_filters.BooleanFilter(field_name='protocol__Status')
+
+    class Meta:
+        model = Student
+        fields = ['ID_Project', 'protocol__Status']
