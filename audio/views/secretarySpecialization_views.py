@@ -7,4 +7,4 @@ class SecretarySpecializationViewSet(viewsets.ModelViewSet):
     queryset = SecretarySpecialization.objects.all()
     serializer_class = SecretarySpecializationSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['ID_Secretary', 'Status']
+    filterset_fields = ['ID_Secretary']
