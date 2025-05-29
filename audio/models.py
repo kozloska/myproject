@@ -13,6 +13,7 @@ class Specialization(models.Model):
     Name = models.TextField(unique=True)
     Qualification = models.TextField(unique=True)
     Number = models.CharField(max_length=10)
+    Status = models.BooleanField()
     class Meta:
         db_table = 'Specialization'  # Укажите имя таблицы
 

@@ -86,6 +86,7 @@ class Migration(migrations.Migration):
                 ('Name', models.TextField(unique=True)),
                 ('Qualification', models.TextField(unique=True)),
                 ('Number', models.CharField(max_length=10)),
+                ('Status', models.BooleanField()),
             ],
             options={
                 'db_table': 'Specialization',
