@@ -101,7 +101,7 @@ class FIOToDativeView(APIView):
 
             dative_fio.append(dative_form)
 
-        result = ' '.join(dative_fio)
+        result = ' '.join(dative_fio).title()
         # Добавляем результат в данные для сериализации
         response_data = {'fio': fio, 'dative_fio': result}
         return Response(response_data, status=status.HTTP_200_OK)
