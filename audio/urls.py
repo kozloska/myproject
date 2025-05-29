@@ -8,6 +8,7 @@ from audio.views.commissionComposition_views import CommissionCompositionViewSet
 from audio.views.commission_views import CommissionViewSet, CommissionMemberViewSet
 from audio.views.defense_views import DefenseViewSet
 from audio.views.fio_to_dative import  FIOToDativeView
+from audio.views.group_views import GroupViewSet
 from audio.views.project_views import ProjectViewSet
 from audio.views.protocol_views import ProtocolViewSet
 from audio.views.question_views import QuestionViewSet
@@ -29,6 +30,7 @@ router.register(r'commissions', CommissionViewSet, basename='commission')
 router.register(r'commission_members', CommissionMemberViewSet, basename='commission_member')
 router.register(r'commission_compositions', CommissionCompositionViewSet, basename='commission_composition')
 router.register(r'defenses', DefenseViewSet, basename='defense')
+router.register(r'groups', GroupViewSet, basename='group')
 router.register(r'specializations', SpecializationViewSet, basename='specialization')
 
 urlpatterns = [
