@@ -1,5 +1,5 @@
 import django_filters
-from .models import CommissionMember, DefenseSchedule, Protocol, Project, Student, Commission
+from .models import CommissionMember, DefenseSchedule, Protocol, Project, Student, Commission, SecretarySpecialization
 from django_filters import rest_framework as filters
 from audio.models import Student, DefenseSchedule
 from django.db.models import Q
@@ -131,3 +131,10 @@ class StudentFilter(django_filters.FilterSet):
     class Meta:
         model = Student
         fields = ['ID_Project', 'protocol__Status']
+
+class SecretarySpecializationFilter(filters.FilterSet):
+    specialization_status = filters.BooleanFilter(field_name='ID_Specialization__Status')
+
+    class Meta:
+        model = SecretarySpecialization
+        fields = ['ID_Secretary', 'specialization_status']  # Добавьте фильтрацию по статусу
