@@ -61,9 +61,21 @@ SPECTACULAR_SETTINGS = {
     'SCHEMA_PATH_PREFIX': '/api/',  # Если API начинается с /api/
 }
 
+# myproject/settings.py - исправленная секция REST_FRAMEWORK
 REST_FRAMEWORK = {
-    # ... другие настройки DRF ...
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
 }
 
 MIDDLEWARE = [
@@ -108,8 +120,8 @@ CELERY_TASK_SERIALIZER = 'json'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Dip',  # Имя вашей базы данных
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dip',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
         'PASSWORD': '1',  # Пароль пользователя
         'HOST': 'localhost',  # Или IP-адрес вашего сервера

@@ -8,6 +8,7 @@ from ..models import CommissionMember
 import django_filters
 
 class BitrixAuthView(APIView):
+    serializer_class = None  # или можно указать InnerSerializer
     permission_classes = []
 
     class InnerSerializer(serializers.Serializer):

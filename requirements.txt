@@ -11,7 +11,7 @@ colorama==0.4.6
 confection==0.1.5
 cymem==2.0.10
 DAWG-Python==0.7.2
-Django==4.2.16
+Django>=5.2
 djangorestframework==3.15.2
 filelock==3.13.1
 fsspec==2024.2.0
@@ -35,7 +35,7 @@ packaging==24.2
 pillow==10.2.0
 preshed==3.0.9
 psycopg==3.2.3
-psycopg2==2.9.10
+#psycopg2==2.9.10
 psycopg2-binary==2.9.10
 pycparser==2.22
 pydantic==2.10.4
@@ -59,13 +59,13 @@ srt==3.5.3
 sympy==1.13.1
 thinc==8.3.3
 tiktoken==0.8.0
-torch==2.5.1+cpu
-torchaudio==2.5.1+cpu
-torchvision==0.20.1+cpu
+torch==2.5.1
+torchaudio==2.5.1
+torchvision==0.20.1
 tqdm==4.67.1
 typer==0.15.1
 typing_extensions==4.12.2
-tzdata==2024.2
+tzdata>=2025.2
 urllib3==2.2.3
 vosk==0.3.45
 wasabi==1.1.3
