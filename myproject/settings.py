@@ -30,10 +30,32 @@ DEBUG = True
 
 
 # settings.py
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2', '0.0.0.0', '172.20.10.5', '172.20.10.1']
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    'localhost', 
+    '0.0.0.0', 
+    '172.26.1.35',  # ← ваш реальный IP
+    '172.20.10.5', 
+    '172.20.10.1',
+    '10.0.2.2:8000',    # ← для Android эмулятора
+    '10.0.3.2',
+]
+
+# CORS настройки
+CORS_ALLOW_ALL_ORIGINS = True  # Для разработки
+
 # Разрешить доступ с любых хостов при DEBUG (только для разработки!)
 if DEBUG:
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '10.0.2.2',      # ← для Android эмулятора
+        '172.26.1.35',
+        '172.20.10.5',
+        '172.20.10.1',
+        '10.0.2.2:8000', # ← иногда требуется с портом!
+        '*',             # на всякий случай
+    ]
 
 # Application definition
 
@@ -62,8 +84,17 @@ SPECTACULAR_SETTINGS = {
 }
 
 REST_FRAMEWORK = {
-    # ... другие настройки DRF ...
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 MIDDLEWARE = [
@@ -97,19 +128,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-CELERY_RESULT_BACKEND = 'rpc://'
+# settings.py
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Dip',  # Имя вашей базы данных
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dip',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
         'PASSWORD': '1',  # Пароль пользователя
         'HOST': 'localhost',  # Или IP-адрес вашего сервера
@@ -169,13 +200,18 @@ CORS_ALLOWED_ORIGINS = [
     "http://172.20.10.1:8000",  # Ваш IP
     "https://localhost:9000",  # Если используете HTTPS
     "http://localhost:9000",
+    "http://127.0.0.1:8000",
+    "http://10.0.2.2:8000",    
 ]
 
 
 # Разрешаем запросы с вашего фронтенда
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:9000",
+    "http://10.0.2.2:8000",
     "https://localhost:9000",  # Если используете HTTPS
+    "http://127.0.0.1:8000",
+    "http://172.26.1.35:8000",  # ← добавьте ваш IP
 ]
 
 # Дополнительно разрешаем методы и заголовки
@@ -191,6 +227,18 @@ CORS_ALLOW_HEADERS = [
     "authorization",
 ]
 
+# Настройки для сессий и CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'http://10.0.2.2:8000',
+    'http://172.26.1.35:8000',
+]
+
 # Настройки для Bitrix
 BITRIX_CLIENT_ID = "local.65581f0597f2b3.73164583"
 BITRIX_SECRET_KEY = "9FTLONYzoMlenvlQBm1TUTfRf1x7ZAUtJK948jeyM2mGmvH0z7"
+
+
+# Отключите HTTPS требования для разработки
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False

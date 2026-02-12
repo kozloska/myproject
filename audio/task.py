@@ -1,64 +1,58 @@
-import os
-from django.core.files.storage import default_storage
-from celery import shared_task
-
+# audio/tasks.py
 from audio.services.LLMProcessor_service import LLMProcessor
-from audio.services.audio_service import AudioService
-from audio.services.transcription_service import TranscriptionService
-from audio.models import AudioFile, Project
+from celery import shared_task
+import tempfile
+import os
 import logging
+from django.core.files.storage import default_storage
+
+from .services.whisper_service import WhisperTranscriber
+from .models import AudioFile, Project, Question
 
 logger = logging.getLogger(__name__)
 
-@shared_task(bind=True, max_retries=3)
-def process_audio_task(self, file_path, project_id):
-    audio_file_path = file_path
-    original_file_path = file_path
-    llm_processor = None
+@shared_task(bind=True, max_retries=2)
+def process_audio_in_memory_task(self, audio_bytes, file_name, project_id):
+    temp_path = None
     try:
-        # Проверяем существование проекта
-        project = Project.objects.get(id=project_id)
-
-        # Конвертация в WAV, если нужно
-        if not audio_file_path.endswith('.wav'):
-            converted_path = f"{audio_file_path}.wav"
-            AudioService.convert_to_wav(audio_file_path, converted_path)
-            audio_file_path = converted_path
-
-        # Транскрипция аудио
-        transcribed_text = AudioService.transcribe_audio(audio_file_path)
-
-        # Сохранение текста в Project
-        project.Text = transcribed_text
-        project.Status = "Транскрипция завершена"
+        project = Project.objects.get(ID=project_id)
+        project.Status = "Транскрибация"
         project.save()
 
-        # Генерация вопросов через LLM
-        llm_processor = LLMProcessor.get_instance()
-        questions = llm_processor.generate_questions(transcribed_text)
+        # === 1. Сохраняем временный файл ===
+        ext = os.path.splitext(file_name)[1].lower() or '.mp3'
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            tmp.write(audio_bytes)
+            temp_path = tmp.name
 
-        # Сохранение вопросов в таблицу Question
-        TranscriptionService.save_questions(questions, project_id)
+        # === 2. Транскрибация ===
+        transcription = WhisperTranscriber.transcribe(temp_path, language="ru")
+        print(f"\nТРАНСКРИПТ:\n{transcription}\n")
+        # === 3. Удаляем временный файл ===
+        os.unlink(temp_path)
+        temp_path = None
 
-        return {
-            "status": "success",
-            "transcribed_text": transcribed_text,
-            "questions": questions
-        }
+        # === 5. Генерация вопросов через LLM ===
+        llm = LLMProcessor(model_path="/home/user/Downloads/deepseek-r1-distill-qwen-14b-q4_k_m.gguf")
+        llm_questions = llm.generate_questions(transcription)
+        print(f"🤖 Вопросы от LLM:")
+        for i, q in enumerate(llm_questions, 1):
+            print(f"  {i}. {q}")
+
+        # === 7. Сохранение в PostgreSQL ===
+        for q in llm_questions:
+            Question.objects.create(Text=q.strip(), ID_Project=project)
+
+        project.Transcription = transcription  # опционально
+        project.Status = "Готов"
+        project.save()
+        print(f"\n💾 Сохранено {saved_count} вопросов в БД для проекта {project_id}")
+        print("✅ Обработка завершена!\n")
 
     except Exception as exc:
-        logger.error(f"Audio processing failed: {str(exc)}")
+        if temp_path and os.path.exists(temp_path):
+            os.unlink(temp_path)
+        project = Project.objects.get(ID=project_id)
+        project.Status = "Ошибка"
+        project.save()
         raise self.retry(exc=exc, countdown=60)
-
-    finally:
-        # Удаляем файлы (исходный и конвертированный, если был создан)
-        for file_path in [audio_file_path, original_file_path]:
-            if file_path and os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    logger.info(f"Deleted file: {file_path}")
-                except Exception as e:
-                    logger.error(f"Failed to delete file {file_path}: {str(e)}")
-        # Освобождаем ресурсы модели
-        if llm_processor:
-            llm_processor.close()

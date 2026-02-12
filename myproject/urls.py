@@ -12,7 +12,6 @@ urlpatterns = [
     path('api/', include('audio.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('', include('audio.urls')),  #
 ]
 
 if settings.DEBUG:
