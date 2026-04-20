@@ -59,22 +59,23 @@ class Commission_CompositionSerializer(serializers.ModelSerializer):
         representation['ID_Member'] = CommissionMemberSerializer(instance.ID_Member).data
         return representation
 
+class SpecializationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialization
+        fields = '__all__'
 
-class SecretarySpecializationSerializer(serializers.ModelSerializer):
-    ID_Specialization = serializers.PrimaryKeyRelatedField(queryset=Specialization.objects.all())
-    ID_Secretary = serializers.PrimaryKeyRelatedField(queryset=CommissionMember.objects.all())
 
+class SecretarySpecializationSerializer(serializers.ModelSerializer): 
+    ID_Specialization = serializers.SerializerMethodField()
     class Meta:
         model = SecretarySpecialization
         fields = ['ID', 'ID_Specialization', 'ID_Secretary']
-
-    def to_representation(self, instance):
-        # Получаем стандартное представление
-        representation = super().to_representation(instance)
-        # Заменяем ID на полные объекты
-        representation['ID_Specialization'] = SpecializationSerializer(instance.ID_Specialization).data
-        representation['ID_Secretary'] = CommissionMemberSerializer(instance.ID_Secretary).data
-        return representation
+    
+    def get_ID_Specialization(self, obj):
+        if obj.ID_Specialization:
+            data = SpecializationSerializer(obj.ID_Specialization).data
+            return data
+        return None
 
 class CommissionSerializer(serializers.ModelSerializer):
     members = CommissionCompositionSerializer(many=True, read_only=True, source='commissioncomposition_set')
@@ -84,10 +85,20 @@ class CommissionSerializer(serializers.ModelSerializer):
 
 
 class DefenseScheduleSerializer(serializers.ModelSerializer):
-    ID_Commission = CommissionSerializer()
+    ID_Commission = serializers.PrimaryKeyRelatedField(
+        queryset=Commission.objects.all(),
+        required=False  
+    )
     class Meta:
         model = DefenseSchedule
         fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.ID_Commission:
+            data['ID_Commission'] = CommissionSerializer(instance.ID_Commission).data 
+        return data
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -98,11 +109,6 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = '__all__'
-
-class SpecializationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Specialization
         fields = '__all__'
 
 
@@ -125,19 +131,21 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProtocolSerializer(serializers.ModelSerializer):
-    ID_Student = StudentSerializer()
-    ID_DefenseSchedule = DefenseScheduleSerializer()
+    ID_Student = StudentSerializer(read_only=True)
+    
     class Meta:
         model = Protocol
-        fields = '__all__'
-
-
-class SecretarySpecializationSerializer(serializers.ModelSerializer):
-    ID_Specialization = SpecializationSerializer(read_only=True)
-    class Meta:
-        model = SecretarySpecialization
-        fields = ['ID', 'ID_Specialization']
-
+        fields = '__all__'  
+        
+    def to_representation(self, instance):
+        # Сначала получаем стандартное представление (где ID_DefenseSchedule - это просто число)
+        data = super().to_representation(instance)
+        
+        # Если расписание назначено, заменяем ID на полный объект
+        if instance.ID_DefenseSchedule:
+            data['ID_DefenseSchedule'] = DefenseScheduleSerializer(instance.ID_DefenseSchedule).data
+            
+        return data  
 
 class UpdateGradeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -7,5 +7,5 @@ from audio.serializers import SecretarySpecialization, SecretarySpecializationSe
 class SecretarySpecializationViewSet(viewsets.ModelViewSet):
     queryset = SecretarySpecialization.objects.all()
     serializer_class = SecretarySpecializationSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = SecretarySpecializationFilter  # Используйте новый фильтр
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SecretarySpecializationFilter  

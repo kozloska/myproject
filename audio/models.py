@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 class AudioFile(models.Model):
     audio = models.FileField(upload_to='audio/')
@@ -114,6 +115,7 @@ class DefenseSchedule(models.Model):
     ID = models.AutoField(primary_key=True)
     DateTime = models.DateTimeField()
     ID_Commission = models.ForeignKey('Commission', on_delete=models.CASCADE, null=True, blank=True)
+    ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE, null=True, blank=True)
     Count = models.IntegerField()
     Class = models.CharField(max_length=10)
     class Meta:
@@ -127,12 +129,26 @@ class CommissionMember(models.Model):
     Surname = models.CharField(max_length=50)
     Name = models.CharField(max_length=50)
     Patronymic = models.CharField(max_length=50)
+    
+    # Временно: null=True, blank=True, unique=False
+    login = models.CharField(max_length=150, unique=False, null=True, blank=True, db_index=True)
+    password = models.CharField(max_length=128, blank=True, null=True)  # Хешированный пароль
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'CommissionMember'
+        verbose_name = 'Член комиссии'
+        verbose_name_plural = 'Члены комиссии'
 
     def __str__(self):
         return f"{self.Surname} {self.Name} {self.Patronymic}"
+    
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+        self.save(update_fields=['password'])
+    
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
 
 class CommissionComposition(models.Model):
@@ -155,7 +171,3 @@ class SecretarySpecialization(models.Model):
 
     class Meta:
         db_table = 'Secretary/Specialization'
-
-    def __str__(self):
-        return f"{self.ID_Specialization} - {self.ID_Secretary}"
-

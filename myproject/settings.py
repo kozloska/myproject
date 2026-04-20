@@ -194,16 +194,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Или явно укажите разрешенные адреса:
-CORS_ALLOWED_ORIGINS = [
-    "http://172.20.10.5:8000",
-    "http://172.20.10.1:8000",  # Ваш IP
-    "https://localhost:9000",  # Если используете HTTPS
-    "http://localhost:9000",
-    "http://127.0.0.1:8000",
-    "http://10.0.2.2:8000",    
-]
-
 
 # Разрешаем запросы с вашего фронтенда
 CORS_ALLOWED_ORIGINS = [
@@ -214,11 +204,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://172.26.1.35:8000",  # ← добавьте ваш IP
 ]
 
+CORS_ALLOW_CREDENTIALS = True 
+
 # Дополнительно разрешаем методы и заголовки
 CORS_ALLOW_METHODS = [
     "GET",
     "POST",
-    "OPTIONS",  # Важно для preflight-запросов
+    "PUT",
+    "PATCH",  # ← ЭТОГО НЕ ХВАТАЛО!
+    "DELETE",
+    "OPTIONS",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -242,3 +237,9 @@ BITRIX_SECRET_KEY = "9FTLONYzoMlenvlQBm1TUTfRf1x7ZAUtJK948jeyM2mGmvH0z7"
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',  # Основной (bcrypt + SHA256)
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',        # Фоллбэк для совместимости
+    'django.contrib.auth.hashers.Argon2PasswordHasher',        # Опционально, если установлен
+]

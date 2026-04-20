@@ -16,39 +16,47 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['patch'], serializer_class=UpdateDefenseTimeByProjectSerializer)
     def project_time_start(self, request):
-        try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            project_id = serializer.validated_data['ID_Project']
-            defense_time = serializer.validated_data.get('DefenseStartTime')
-            updated = Protocol.objects.filter(
-                ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID')
-            ).update(DefenseStartTime=defense_time)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        project_id = serializer.validated_data['ID_Project']
+        defense_time = serializer.validated_data.get('DefenseStartTime')
+        defense_schedule_id = request.data.get('ID_DefenseSchedule')
+        
+        # Обновляем только протоколы со статусом False и нужным расписанием
+        updated = Protocol.objects.filter(
+            ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID'),
+            Status=False,
+            ID_DefenseSchedule=defense_schedule_id
+        ).update(DefenseStartTime=defense_time)
 
-            project = Project.objects.get(ID=project_id)
-            if defense_time is None:
-                project.Status = "Защита не начата"
-            else:
-                project.Status = "Защита начата"
-            project.save()
-            return Response({"message": "Протоколы успешно обновлены"}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Обновляем статус проекта
+        project = Project.objects.get(ID=project_id)
+        project.Status = "Защита не начата" if defense_time is None else "Защита начата"
+        project.save()
+        
+        return Response({
+            "message": f"Протоколы успешно обновлены ({updated} записей)",
+            "updated_count": updated
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['patch'], serializer_class=UpdateDefenseTimeEndByProjectSerializer)
     def project_time_end(self, request):
-        try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            project_id = serializer.validated_data['ID_Project']
-            defense_time = serializer.validated_data.get('DefenseEndTime')
-            updated = Protocol.objects.filter(
-                ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID')
-            ).update(DefenseEndTime=defense_time)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        project_id = serializer.validated_data['ID_Project']
+        defense_time = serializer.validated_data.get('DefenseEndTime')
+        defense_schedule_id = request.data.get('ID_DefenseSchedule')
+        
+        # Обновляем только протоколы со статусом False и нужным расписанием
+        updated = Protocol.objects.filter(
+            ID_Student__in=Student.objects.filter(ID_Project=project_id).values('ID'),
+            Status=False,
+            ID_DefenseSchedule=defense_schedule_id
+        ).update(DefenseEndTime=defense_time)
 
-            return Response({"message": "Протоколы успешно обновлены"}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({
+            "message": f"Протоколы успешно обновлены ({updated} записей)",
+            "updated_count": updated
+        }, status=status.HTTP_200_OK)

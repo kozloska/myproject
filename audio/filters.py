@@ -17,10 +17,9 @@ class SecretaryFilter(django_filters.FilterSet):
 
 class DefenseScheduleFilter(django_filters.FilterSet):
     specialization_id = django_filters.NumberFilter(
-        method='filter_by_specialization',
+        field_name='ID_Specialization',  
         label='ID специализации'
     )
-
     class Meta:
         model = DefenseSchedule
         fields = []
@@ -41,30 +40,12 @@ class ProjectFilter(django_filters.FilterSet):
     class Meta:
         model = Project
         fields = []
-
+    
     def filter_by_defense_schedule(self, queryset, name, value):
         return queryset.filter(
-            student__protocol__ID_DefenseSchedule=value
+            student__protocol__ID_DefenseSchedule=value,
+            student__protocol__Status=False
         ).distinct()
-
-
-
-class StudentFilter(filters.FilterSet):
-    grade = filters.CharFilter(
-        field_name='protocol__Grade',
-        lookup_expr='exact',
-        label='Grade'
-    )
-
-    class Meta:
-        model = Student
-        fields = {
-            'ID_Project': ['exact'],
-            'ID_Group': ['exact'],
-            'ID_Specialization': ['exact'],  # Фильтрация остается, но поле не выводится
-        }
-
-from django_filters import rest_framework as filters
 
 class CommissionFilter(filters.FilterSet):
     id_member = filters.NumberFilter(field_name='commissioncomposition__ID_Member')
@@ -99,7 +80,7 @@ class CommissionFilter(filters.FilterSet):
 
 class ProtocolFilter(django_filters.FilterSet):
     student_fio = django_filters.CharFilter(method='filter_by_student_fio')
-
+    specialization_id = django_filters.NumberFilter( field_name='ID_Student__ID_Specialization', label='ID Специализации')
     class Meta:
         model = Protocol
         fields = ['ID_Student', 'Status', 'Year']
@@ -107,10 +88,8 @@ class ProtocolFilter(django_filters.FilterSet):
     def filter_by_student_fio(self, queryset, name, value):
         if not value:
             return queryset
-
         # Убираем лишние пробелы и разбиваем на слова
         words = value.strip().split()
-
         # Создаем условия для каждого слова (ИЛИ между словами)
         q_objects = Q()
         for word in words:
@@ -127,10 +106,11 @@ class ProtocolFilter(django_filters.FilterSet):
 class StudentFilter(django_filters.FilterSet):
     ID_Project = django_filters.NumberFilter(field_name='ID_Project__ID')
     protocol__Status = django_filters.BooleanFilter(field_name='protocol__Status')
-
+    ID_DefenseSchedule = django_filters.NumberFilter(field_name='protocol__ID_DefenseSchedule')
     class Meta:
         model = Student
         fields = ['ID_Project', 'protocol__Status']
+
 
 class SecretarySpecializationFilter(filters.FilterSet):
     specialization_status = filters.BooleanFilter(field_name='ID_Specialization__Status')

@@ -7,3 +7,5 @@ from rest_framework import viewsets
 class SpecializationViewSet(viewsets.ModelViewSet):
     queryset = Specialization.objects.all()
     serializer_class = SpecializationSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['Status']

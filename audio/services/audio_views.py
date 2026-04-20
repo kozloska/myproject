@@ -23,7 +23,7 @@ def upload_audio(request):
 
     try:
         project = Project.objects.get(ID=project_id)
-        project.Status = "В обработке"
+        project.Status = "Вопросы расшифровываются"
         project.save()
 
         # Передаём содержимое файла как bytes
