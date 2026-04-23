@@ -145,7 +145,7 @@ CELERY_TASK_SERIALIZER = 'json'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pck_project_db',  # Имя вашей базы данных
+        'NAME': 'postgres',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
         'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
         'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
