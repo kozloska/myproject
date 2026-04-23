@@ -34,7 +34,7 @@ def process_audio_in_memory_task(self, audio_bytes, file_name, project_id):
         temp_path = None
 
         #Генерация вопросов через LLM
-        llm = LLMProcessor(model_path="/home/user/Downloads/deepseek-r1-distill-qwen-14b-q4_k_m.gguf")
+        llm = LLMProcessor(model_path="/opt/deepseek-r1-distill-qwen-14b-q4_k_m.gguf")
         llm_questions = llm.generate_questions(transcription)
         print(f"Вопросы от LLM:")
         for i, q in enumerate(llm_questions, 1):
