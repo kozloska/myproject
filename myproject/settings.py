@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend'),
+    os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -142,7 +142,6 @@ CELERY_TASK_SERIALIZER = 'json'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -153,9 +152,6 @@ DATABASES = {
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
-
-
-
 
 
 
