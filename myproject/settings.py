@@ -142,16 +142,20 @@ CELERY_TASK_SERIALIZER = 'json'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dip',  # Имя вашей базы данных
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'pck_project_db',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
-        'PASSWORD': '1',  # Пароль пользователя
-        'HOST': 'localhost',  # Или IP-адрес вашего сервера
+        'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
+        'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
+
+
+
 
 
 
