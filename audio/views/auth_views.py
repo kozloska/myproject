@@ -1,0 +1,46 @@
+# audio/views/auth_views.py
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+from ..serializers import CommissionMemberSerializer
+
+@method_decorator(csrf_exempt, name='dispatch')  # 🔑 Отключаем CSRF для этого view
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        login_val = request.data.get('login')
+        password = request.data.get('password')
+
+        if not login_val or not password:
+            return Response({"error": "Логин и пароль обязательны"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, login=login_val, password=password)
+        if user is None:
+            return Response({"error": "Неверный логин или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        login(request, user)  # Создаём сессию
+
+        return Response({
+            "message": "Успешный вход",
+            "user": CommissionMemberSerializer(user).data
+        }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({"message": "Успешный выход"}, status=status.HTTP_200_OK)
+
+@method_decorator(csrf_exempt, name='dispatch')  # 🔑 Отключаем CSRF для этого view
+class CurrentUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response(CommissionMemberSerializer(request.user).data)

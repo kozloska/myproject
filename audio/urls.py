@@ -17,7 +17,6 @@ from audio.views.secretary_views import SecretaryViewSet
 from audio.views.specialization_views import SpecializationViewSet
 from audio.views.student_views import StudentViewSet
 
-
 router = DefaultRouter()
 
 router.register(r'projects', ProjectViewSet, basename='project')

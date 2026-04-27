@@ -1,6 +1,5 @@
 from django.core.files.storage import default_storage
 from rest_framework import serializers
-
 from .models import (
     AudioFile,
     Commission,
@@ -35,9 +34,16 @@ class AudioUploadSerializer(serializers.Serializer):
 
 
 class CommissionMemberSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = CommissionMember
-        fields = '__all__'
+        # 🔑 Уберите 'last_login' отсюда, если он не нужен фронтенду
+        fields = ['ID', 'login', 'Surname', 'Name', 'Patronymic', 'full_name', 'is_active']
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        return f"{obj.Surname} {obj.Name} {obj.Patronymic}".strip()
 
 class CommissionCompositionSerializer(serializers.ModelSerializer):
     ID_Member = CommissionMemberSerializer(read_only=True)
@@ -207,3 +213,19 @@ class FIOSerializer(serializers.Serializer):
     fio = serializers.CharField(max_length=255, required=True)
     dative_fio = serializers.CharField(max_length=255, read_only=True)
 
+# 1. Для входа (только логин и пароль)
+class LoginSerializer(serializers.Serializer):
+    login = serializers.CharField()
+    password = serializers.CharField(write_only=True) # write_only значит, что он не вернется в ответе
+
+# 2. Для отображения данных пользователя (без пароля!)
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommissionMember
+        fields = ['ID', 'login', 'Surname', 'Name', 'Patronymic', 'full_name', 'is_active']
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        return f"{obj.Surname} {obj.Name} {obj.Patronymic}"

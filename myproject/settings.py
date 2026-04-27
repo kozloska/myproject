@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import logging
 import os
-
+from datetime import timedelta
 logging.basicConfig(level=logging.DEBUG)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,6 +23,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -72,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'audio',
     'drf_spectacular',
     'django_filters',
@@ -94,11 +96,10 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Сессии
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
@@ -111,6 +112,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher', # Основной
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',       # Резервный
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -152,8 +158,6 @@ DATABASES = {
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -233,18 +237,16 @@ CSRF_TRUSTED_ORIGINS = [
     'http://172.26.1.35:8000',
 ]
 
-# Настройки для Bitrix
-BITRIX_CLIENT_ID = "local.65581f0597f2b3.73164583"
-BITRIX_SECRET_KEY = "9FTLONYzoMlenvlQBm1TUTfRf1x7ZAUtJK948jeyM2mGmvH0z7"
+# Время жизни сессии (по умолчанию 2 недели)
+SESSION_COOKIE_AGE = 86400  # 24 часа в секундах
+SESSION_COOKIE_SECURE = False  # True только для HTTPS в продакшене
+SESSION_COOKIE_HTTPONLY = True  # Защита от XSS
+SESSION_COOKIE_SAMESITE = 'Lax'  # Или 'None' для кросс-доменных запросов
 
-
-# Отключите HTTPS требования для разработки
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-SECURE_SSL_REDIRECT = False
-
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',  # Основной (bcrypt + SHA256)
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',        # Фоллбэк для совместимости
-    'django.contrib.auth.hashers.Argon2PasswordHasher',        # Опционально, если установлен
+# settings.py
+AUTHENTICATION_BACKENDS = [
+    'audio.auth_backends.CommissionMemberAuthBackend',  # Наш бэкенд
+    'django.contrib.auth.backends.ModelBackend',         # Стандартный (для админки)
 ]
+
+#STATIC_ROOT = BASE_DIR / 'staticfiles'

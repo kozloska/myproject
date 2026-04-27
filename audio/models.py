@@ -124,32 +124,46 @@ class DefenseSchedule(models.Model):
     def __str__(self):
         return f"{self.DateTime}"
 
+# audio/models.py
+from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
+
 class CommissionMember(models.Model):
     ID = models.AutoField(primary_key=True)
     Surname = models.CharField(max_length=50)
     Name = models.CharField(max_length=50)
     Patronymic = models.CharField(max_length=50)
     
-    # Временно: null=True, blank=True, unique=False
-    login = models.CharField(max_length=150, unique=False, null=True, blank=True, db_index=True)
-    password = models.CharField(max_length=128, blank=True, null=True)  # Хешированный пароль
+    login = models.CharField(max_length=150, unique=True, db_index=True)
+    password = models.CharField(max_length=128)  # Хеш
     is_active = models.BooleanField(default=True)
-
+    last_login = models.DateTimeField(null=False, blank=True, verbose_name='Последний вход')
     class Meta:
         db_table = 'CommissionMember'
-        verbose_name = 'Член комиссии'
-        verbose_name_plural = 'Члены комиссии'
 
     def __str__(self):
-        return f"{self.Surname} {self.Name} {self.Patronymic}"
+        return f"{self.Surname} {self.Name}"
     
+    # Методы для совместимости с Django auth
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
         self.save(update_fields=['password'])
     
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
-
+    
+    # Для SessionAuthentication нужно, чтобы объект вел себя как пользователь
+    @property
+    def is_authenticated(self):
+        return True  # Если объект найден — он аутентифицирован
+    
+    @property
+    def is_anonymous(self):
+        return False
+    
+    def get_username(self):
+        return self.login
+    
 
 class CommissionComposition(models.Model):
     ID = models.AutoField(primary_key=True)
