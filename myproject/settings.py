@@ -203,48 +203,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-# Разрешаем запросы с вашего фронтенда
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://10.0.2.2:8000",
-    "https://localhost:8000",  # Если используете HTTPS
-    "http://127.0.0.1:8000",
-    "http://172.26.1.35:8000", 
-    "http://localhost:5173" # ← добавьте ваш IP
-]
-
-CORS_ALLOW_CREDENTIALS = True 
-
-# Дополнительно разрешаем методы и заголовки
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",  # ← ЭТОГО НЕ ХВАТАЛО!
-    "DELETE",
-    "OPTIONS",
-]
-
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "content-type",
-    "authorization",
-]
-
-# Настройки для сессий и CSRF
-CSRF_TRUSTED_ORIGINS = [
-    'http://10.0.2.2:8000',
-    'http://172.26.1.35:8000',
-    'http://localhost:5173'
-]
-
-# CSRF — безопасно и работает с фронтендом
-CSRF_COOKIE_HTTPONLY = False          # фронтенд читает токен
-CSRF_COOKIE_SAMESITE = 'Lax'          # или 'None' + SECURE=True для HTTPS
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_HTTPONLY = True
-
 # settings.py
 AUTHENTICATION_BACKENDS = [
     'audio.auth_backends.CommissionMemberAuthBackend',  # Наш бэкенд
@@ -253,4 +211,21 @@ AUTHENTICATION_BACKENDS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-CORS_ALLOW_CREDENTIALS = True  
+# ====================== CORS & CSRF ======================
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True   # Для разработки
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://10.0.2.2:8000',
+    'http://172.26.1.35:8000',
+]
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
