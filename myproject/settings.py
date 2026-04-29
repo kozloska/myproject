@@ -23,6 +23,7 @@ ALLOWED_HOSTS = [
 ]
 # ====================== CORS & CSRF (самая важная часть) ======================
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
 # Разрешаем запросы с вашего фронтенда
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
