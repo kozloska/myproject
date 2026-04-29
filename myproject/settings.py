@@ -23,8 +23,14 @@ ALLOWED_HOSTS = [
 ]
 # ====================== CORS & CSRF (самая важная часть) ======================
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True          # Для разработки удобно
-
+# Разрешаем запросы с вашего фронтенда
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://10.0.2.2:8000",
+    "https://localhost:9000",  # Если используете HTTPS
+    "http://127.0.0.1:8000",
+    "http://172.26.1.35:8000",  # ← добавьте ваш IP
+]
 # Дополнительно разрешаем методы и заголовки
 CORS_ALLOW_METHODS = [
     "GET",
