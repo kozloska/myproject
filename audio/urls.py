@@ -39,6 +39,7 @@ urlpatterns = [
     path('upload-excel/', UploadExcelView.as_view(), name='upload_excel'),
     path('upload-defense-schedule/', UploadDefenseScheduleView.as_view(), name='upload_defense_schedule'),
     path('fio_to_dative/', FIOToDativeView.as_view(), name='fio_to_dative'),
+    
 ]
 
 
