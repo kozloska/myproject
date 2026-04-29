@@ -119,12 +119,12 @@ SPECTACULAR_SETTINGS = {
 # ====================== DATABASE ======================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dip',
-        'USER': 'postgres',
-        'PASSWORD': '1',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',  # Имя вашей базы данных
+        'USER': 'postgres',  # Имя пользователя PostgreSQL
+        'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
+        'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
+        'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
 
@@ -136,7 +136,7 @@ CELERY_TASK_SERIALIZER = 'json'
 
 # ====================== STATIC & MEDIA ======================
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR/'staticfiles'
+#STATIC_ROOT = BASE_DIR/'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR/'media'
 ROOT_URLCONF = 'myproject.urls'
