@@ -1,13 +1,15 @@
-# audio/views/auth_views.py
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from ..serializers import CommissionMemberSerializer
+import logging
 
-@method_decorator(csrf_exempt, name='dispatch')  # 🔑 Отключаем CSRF для этого view
+logger = logging.getLogger(__name__)
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -16,13 +18,17 @@ class LoginView(APIView):
         password = request.data.get('password')
 
         if not login_val or not password:
-            return Response({"error": "Логин и пароль обязательны"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Логин и пароль обязательны"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
 
         user = authenticate(request, login=login_val, password=password)
         if user is None:
-            return Response({"error": "Неверный логин или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "Неверный логин или пароль"}, 
+                            status=status.HTTP_401_UNAUTHORIZED)
 
-        login(request, user)  # Создаём сессию
+        login(request, user)   # Это важно — создаёт сессию
+
+        logger.info(f"User {user.login} logged in successfully")
 
         return Response({
             "message": "Успешный вход",
@@ -30,7 +36,7 @@ class LoginView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -38,7 +44,7 @@ class LogoutView(APIView):
         logout(request)
         return Response({"message": "Успешный выход"}, status=status.HTTP_200_OK)
 
-@method_decorator(csrf_exempt, name='dispatch')  # 🔑 Отключаем CSRF для этого view
+
 class CurrentUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

@@ -150,11 +150,11 @@ CELERY_TASK_SERIALIZER = 'json'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',  # Имя вашей базы данных
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dip',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
-        'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
-        'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
+        'PASSWORD': '1',  # Пароль пользователя
+        'HOST': 'localhost',  # Или IP-адрес вашего сервера
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
@@ -206,11 +206,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Разрешаем запросы с вашего фронтенда
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:9000",
+    "http://localhost:8000",
     "http://10.0.2.2:8000",
-    "https://localhost:9000",  # Если используете HTTPS
+    "https://localhost:8000",  # Если используете HTTPS
     "http://127.0.0.1:8000",
-    "http://172.26.1.35:8000",  # ← добавьте ваш IP
+    "http://172.26.1.35:8000", 
+    "http://localhost:5173" # ← добавьте ваш IP
 ]
 
 CORS_ALLOW_CREDENTIALS = True 
@@ -235,13 +236,14 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     'http://10.0.2.2:8000',
     'http://172.26.1.35:8000',
+    'http://localhost:5173'
 ]
 
-# Время жизни сессии (по умолчанию 2 недели)
-SESSION_COOKIE_AGE = 86400  # 24 часа в секундах
-SESSION_COOKIE_SECURE = False  # True только для HTTPS в продакшене
-SESSION_COOKIE_HTTPONLY = True  # Защита от XSS
-SESSION_COOKIE_SAMESITE = 'Lax'  # Или 'None' для кросс-доменных запросов
+# CSRF — безопасно и работает с фронтендом
+CSRF_COOKIE_HTTPONLY = False          # фронтенд читает токен
+CSRF_COOKIE_SAMESITE = 'Lax'          # или 'None' + SECURE=True для HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
 
 # settings.py
 AUTHENTICATION_BACKENDS = [
@@ -249,4 +251,6 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',         # Стандартный (для админки)
 ]
 
-#STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+CORS_ALLOW_CREDENTIALS = True  
