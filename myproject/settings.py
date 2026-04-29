@@ -25,6 +25,22 @@ ALLOWED_HOSTS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True          # Для разработки удобно
 
+# Дополнительно разрешаем методы и заголовки
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",  # ← ЭТОГО НЕ ХВАТАЛО!
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "content-type",
+    "authorization",
+]
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
