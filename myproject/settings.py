@@ -54,7 +54,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://10.0.2.2:8000',
     'http://172.26.1.35:8000',
-    'http://172.28.20.54',
+    'http://172.28.20.54:5173'
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -89,7 +89,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -151,6 +151,7 @@ DATABASES = {
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
+
 
 # ====================== CELERY ======================
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
