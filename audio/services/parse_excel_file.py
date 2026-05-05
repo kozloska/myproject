@@ -201,6 +201,7 @@ def parse_defense_schedule(file_path, specialization_id):
     Returns:
         dict: Результат обработки (успех/ошибка, количество добавленных и связанных записей).
     """
+    print(f"=== НАЧАЛО ПАРСИНГА === Файл: {file_path}, Specialization ID: {specialization_id}")
     try:
         # Загружаем Excel-файл с помощью openpyxl
         workbook = openpyxl.load_workbook(file_path, data_only=True)
@@ -358,7 +359,9 @@ def parse_defense_schedule(file_path, specialization_id):
                             DateTime=defense_datetime,
                             ID_Commission=None,
                             Count=slot_count,
-                            Class=current_auditorium
+                            Class=current_auditorium,
+                            ID_Specialization = specialization
+
                         )
                         defenses_added += 1
 
@@ -378,7 +381,7 @@ def parse_defense_schedule(file_path, specialization_id):
                                 ID_Specialization=specialization
                             )
                             for student in students:
-                                protocols = Protocol.objects.filter(ID_Student=student, Status=false)
+                                protocols = Protocol.objects.filter(ID_Student=student, Status=False)
                                 for protocol in protocols:
                                     protocol.ID_DefenseSchedule = defense_schedule  # Обновляем связь
                                     protocol.save()
@@ -391,4 +394,208 @@ def parse_defense_schedule(file_path, specialization_id):
         }
 
     except Exception as e:
+        return {"status": "error", "message": str(e)}
+    
+
+
+def parse_defense_schedule(file_path, specialization_id):
+    print(f"\n=== 🔧 НАЧАЛО ПАРСИНГА (с поддержкой пустых слотов) ===")
+    print(f"📁 Файл: {file_path}, Spec ID: {specialization_id}")
+    
+    try:
+        workbook = openpyxl.load_workbook(file_path, data_only=True)
+        print(f"📑 Листы: {workbook.sheetnames}")
+
+        defenses_added = 0
+        protocols_linked = 0
+        
+        try:
+            specialization = Specialization.objects.get(ID=specialization_id)
+            print(f"✅ Specialization: {specialization.Name}")
+        except Specialization.DoesNotExist:
+            print(f"❌ Specialization не найдена!")
+            return {"status": "error", "message": "Специальность не найдена"}
+        
+        with transaction.atomic():
+            for sheet_name in workbook.sheetnames:
+                sheet = workbook[sheet_name]
+                print(f"\n--- Лист: '{sheet_name}', строк: {sheet.max_row} ---")
+
+                current_date = None
+                # Текущий накапливаемый слот
+                current_slot = {
+                    'time': None,
+                    'auditorium': None,
+                    'count': 0,      # Количество выделенных мест (из merged cells)
+                    'students': []   # Список найденных студентов (Group, Project)
+                }
+                
+                def save_slot(slot, date):
+                    """Сохраняет слот в БД, даже если он пустой"""
+                    nonlocal defenses_added, protocols_linked
+                    
+                    if not date or not slot['time']:
+                        print(f"⚠️ Пропуск: нет даты или времени")
+                        return
+
+                    print(f"💾 СОХРАНЕНИЕ СЛОТА: {date.date()} {slot['time']}, Ауд:{slot['auditorium']}, Мест:{slot['count']}, Студентов:{len(slot['students'])}")
+                    
+                    time_match = re.match(r'(\d{2}:\d{2})-(\d{2}:\d{2})', slot['time'])
+                    if not time_match:
+                        print(f"❌ Ошибка формата времени: {slot['time']}")
+                        return
+
+                    try:
+                        start_time = datetime.strptime(time_match.group(1), '%H:%M').time()
+                    except ValueError:
+                        print(f"❌ Ошибка парсинга времени")
+                        return
+
+                    defense_dt = timezone.make_aware(datetime.combine(date, start_time))
+                    
+                    # Создаем запись расписания ВСЕГДА, даже если students пуст
+                    defense = DefenseSchedule.objects.create(
+                        DateTime=defense_dt,
+                        ID_Specialization=specialization,
+                        Count=slot['count'], # Берем count из объединенных ячеек
+                        Class=slot['auditorium']
+                    )
+                    defenses_added += 1
+                    print(f"✅ Создан DefenseSchedule ID={defense.ID} (Count={slot['count']})")
+
+                    # Привязываем студентов, если они есть
+                    for group_name, project_title in slot['students']:
+                        if not group_name or not project_title:
+                            continue
+                        
+                        group_name = str(group_name).strip()
+                        project_title = str(project_title).strip()
+
+                        try:
+                            group = Group.objects.get(Name=group_name)
+                            project = Project.objects.get(Title=project_title)
+                        except (Group.DoesNotExist, Project.DoesNotExist):
+                            print(f"   ⚠️ НЕ найдено в БД: '{group_name}' / '{project_title[:30]}'")
+                            continue
+
+                        students = Student.objects.filter(
+                            ID_Project=project, 
+                            ID_Group=group, 
+                            ID_Specialization=specialization
+                        )
+                        
+                        for student in students:
+                            protocol = Protocol.objects.filter(ID_Student=student, ID_DefenseSchedule=None).first()
+                            if protocol:
+                                protocol.ID_DefenseSchedule = defense
+                                protocol.save(update_fields=['ID_DefenseSchedule'])
+                                protocols_linked += 1
+                            else:
+                                Protocol.objects.create(
+                                    ID_Student=student, 
+                                    ID_DefenseSchedule=defense,
+                                    Year=date.year, 
+                                    Status=False
+                                )
+                                protocols_linked += 1
+
+                # === Основной цикл по строкам ===
+                for row_idx in range(1, sheet.max_row + 1):
+                    cell_a = sheet.cell(row=row_idx, column=1)
+                    cell_b = sheet.cell(row=row_idx, column=2)
+                    cell_c = sheet.cell(row=row_idx, column=3)
+                    cell_d = sheet.cell(row=row_idx, column=4)
+                    
+                    val_a = cell_a.value
+                    val_b = cell_b.value
+                    val_c = cell_c.value
+                    val_d = cell_d.value
+
+                    str_a = str(val_a).strip() if val_a is not None else ""
+                    str_b = str(val_b).strip() if val_b is not None else ""
+                    str_c = str(val_c).strip() if val_c is not None else ""
+                    str_d = str(val_d).strip() if val_d is not None else ""
+
+                    # 1. ПОИСК ДАТЫ
+                    found_date = None
+                    if isinstance(val_a, datetime):
+                        found_date = val_a
+                    elif str_a:
+                        date_match = re.search(r'(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})', str_a)
+                        if date_match:
+                            date_str = date_match.group(1)
+                            for fmt in ['%d.%m.%Y', '%d-%m-%Y', '%d/%m/%Y', '%d.%m.%y']:
+                                try:
+                                    found_date = datetime.strptime(date_str, fmt)
+                                    break
+                                except ValueError:
+                                    continue
+                    
+                    if found_date:
+                        # Перед сменой даты сохраняем предыдущий слот (если он был)
+                        if current_slot['time']:
+                            save_slot(current_slot, current_date)
+                        
+                        print(f"📅 [Row {row_idx}] Новая дата: {found_date.date()}")
+                        current_date = found_date
+                        # Сбрасываем слот для новой даты
+                        current_slot = {'time': None, 'auditorium': None, 'count': 0, 'students': []}
+                        continue
+
+                    # 2. ПОИСК ВРЕМЕНИ (Начало нового слота)
+                    time_match = re.match(r'^(\d{2}:\d{2})-(\d{2}:\d{2})$', str_a)
+                    
+                    if time_match:
+                        # Если уже был активный слот, сохраняем его перед началом нового
+                        if current_slot['time']:
+                            save_slot(current_slot, current_date)
+                        
+                        current_slot['time'] = str_a
+                        current_slot['auditorium'] = str_b if str_b else "Не указана"
+                        current_slot['students'] = [] # Очищаем список студентов
+                        
+                        # 🔥 ВАЖНО: Определяем Count через объединенные ячейки в столбце B (Аудитория)
+                        merged_count = 0
+                        for merged_range in sheet.merged_cells.ranges:
+                            # Ищем объединение, которое начинается в текущей строке и находится во 2-м столбце
+                            if merged_range.min_row == row_idx and merged_range.min_col == 2 and merged_range.max_col == 2:
+                                merged_count = merged_range.max_row - merged_range.min_row + 1
+                                break
+                        
+                        # Если объединения нет, считаем как 1 строка
+                        current_slot['count'] = merged_count if merged_count > 0 else 1
+                        
+                        print(f"⏰ [Row {row_idx}] Новый слот: {current_slot['time']}, Ауд: {current_slot['auditorium']}, Выделено мест (Count): {current_slot['count']}")
+                        
+                        # Если в строке со временем сразу есть студент (редко, но бывает)
+                        if str_c and str_d and str_d.lower() != 'тема проекта':
+                            current_slot['students'].append((str_c, str_d))
+                            
+                        continue
+
+                    # 3. ОБРАБОТКА СТРОК С ДАННЫМИ (Студенты внутри текущего слота)
+                    if current_date and current_slot['time']:
+                        # Если есть Группа и Тема, добавляем в текущий слот
+                        if str_c and str_d and str_d.lower() != 'тема проекта':
+                            current_slot['students'].append((str_c, str_d))
+                            # print(f"   ➕ Студент: {str_c} | {str_d[:30]}")
+
+                # После окончания цикла сохраняем последний слот на листе
+                if current_slot['time']:
+                    print(f"🔄 Конец листа. Сохраняю последний слот...")
+                    save_slot(current_slot, current_date)
+
+        print(f"\n=== 🏁 ИТОГ ===")
+        print(f"✅ defenses_added: {defenses_added}, protocols_linked: {protocols_linked}")
+        
+        return {
+            "status": "success",
+            "defenses_added": defenses_added,
+            "protocols_linked": protocols_linked
+        }
+
+    except Exception as e:
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        import traceback
+        traceback.print_exc()
         return {"status": "error", "message": str(e)}

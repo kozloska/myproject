@@ -75,79 +75,57 @@ class UploadExcelView(View):
                 status=500
             )
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class UploadDefenseScheduleView(View):
     def post(self, request):
-        """
-        Обработчик POST-запроса для загрузки и парсинга Excel-файла с расписанием защит.
-        Ожидает multipart/form-data с полями:
-        - file: Excel-файл (.xlsx, .xls)
-        - specialization_id: ID направления подготовки (обязательно)
-        """
+        print("\n" + "="*60)
+        print("🚀 UPLOAD_DEFENSE_SCHEDULE VIEW ВЫЗВАН!")
+        print(f"📁 FILES: {list(request.FILES.keys())}")
+        print(f"📋 POST данные: {request.POST}")
+        print("="*60 + "\n")
+        
         try:
-            # ✅ 1. Проверка наличия файла
-            # Проверяем наличие файла и specialization_id
-            if 'file' not in request.FILES or 'file' not in request.FILES or 'specialization_id' not in request.POST:
-                logger.error("Missing file or specialization_id in request")
+            # Проверка наличия файла
+            if 'file' not in request.FILES or 'specialization_id' not in request.POST:
+                print("❌ Ошибка: нет файла или specialization_id")
                 return JsonResponse(
-                    {"status": "error",
-                     "message": "File and specialization_id must be provided"},
+                    {"status": "error", "message": "File and specialization_id must be provided"},
                     status=400
                 )
             
-            # ✅ 2. Проверка наличия и валидности specialization_id
             specialization_id = request.POST['specialization_id']
-
-            if not specialization_id:
-                return JsonResponse(
-                    {"status": "error", "message": "specialization_id is required"},
-                    status=400
-                )
-
-            try:
-                specialization_id = int(specialization_id)
-            except (ValueError, TypeError):
-                return JsonResponse(
-                    {"status": "error", "message": "Invalid specialization_id format"},
-                    status=400
-                )
-
-            # ✅ 3. Проверка существования специальности в БД
-            try:
-                specialization = Specialization.objects.get(ID=specialization_id)
-            except Specialization.DoesNotExist:
-                return JsonResponse(
-                    {"status": "error", "message": "Specialization not found"},
-                    status=404
-                )
-
             excel_file = request.FILES['file']
+            
+            print(f"✅ Файл получен: {excel_file.name} ({excel_file.content_type})")
+            print(f"✅ Specialization ID: {specialization_id}")
 
-            # ✅ 4. Сохранение файла во временное хранилище
+            # Сохраняем файл
             with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
                 for chunk in excel_file.chunks():
                     tmp_file.write(chunk)
                 tmp_file_path = tmp_file.name
+            
+            print(f"💾 Файл сохранён во временную папку: {tmp_file_path}")
 
-            # ✅ 5. Вызов парсера с передаём specialization_id
+            # Вызов парсера
+            print("🔄 Вызываю parse_defense_schedule...")
             result = parse_defense_schedule(
                 file_path=tmp_file_path,
-                specialization_id=specialization_id  # ✅ Передаём ID
+                specialization_id=int(specialization_id)
             )
+            print(f"📦 Результат парсера: {result}")
 
-            # ✅ 6. Очистка временного файла
-            try:
-                os.remove(tmp_file_path)
-            except Exception as e:
-                logger.warning(f"Failed to delete temporary file {tmp_file_path}: {str(e)}")
-
-            # ✅ 7. Возврат результата
+            # Удаляем временный файл
+            os.remove(tmp_file_path)
+            
             status_code = 200 if result.get('status') == 'success' else 400
+            print(f"✅ Возвращаю ответ: статус={status_code}, данные={result}")
             return JsonResponse(result, status=status_code)
 
         except Exception as e:
-            logger.error(f"Error processing defense schedule request: {str(e)}", exc_info=True)
+            print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse(
                 {"status": "error", "message": f"Server error: {str(e)}"},
                 status=500
