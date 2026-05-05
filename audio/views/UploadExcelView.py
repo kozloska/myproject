@@ -7,6 +7,7 @@ import logging
 
 from django.views.decorators.csrf import csrf_exempt
 
+from audio.models import Specialization
 from audio.services.parse_excel_file import parse_excel_file, parse_defense_schedule
 
 logger = logging.getLogger(__name__)
