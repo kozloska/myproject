@@ -95,7 +95,7 @@ class UploadDefenseScheduleView(View):
                 )
 
             # ✅ 2. Проверка наличия и валидности specialization_id
-            specialization_id = request.POST.get('specialization_id')
+            specialization_id = request.POST('specialization_id')
             if not specialization_id:
                 return JsonResponse(
                     {"status": "error", "message": "specialization_id is required"},
