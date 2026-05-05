@@ -13,6 +13,7 @@ from .models import (
     Protocol,
     CommissionComposition,
     SecretarySpecialization,
+    Qualification
 )
 
 class AudioUploadSerializer(serializers.Serializer):
@@ -45,12 +46,38 @@ class CommissionMemberSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return f"{obj.Surname} {obj.Name} {obj.Patronymic}".strip()
 
+class CommissionMemberShortSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommissionMember
+        fields = ['ID', 'Surname', 'Name', 'Patronymic', 'full_name', 'login']
+
+    def get_full_name(self, obj):
+        return f"{obj.Surname} {obj.Name} {obj.Patronymic}".strip()
+
+
 class CommissionCompositionSerializer(serializers.ModelSerializer):
-    ID_Member = CommissionMemberSerializer(read_only=True)
+    # При чтении показываем полные данные участника
+    ID_Member = CommissionMemberShortSerializer(read_only=True)
+    
+    # При записи принимаем ID участника
+    member_id = serializers.PrimaryKeyRelatedField(
+        source='ID_Member',
+        queryset=CommissionMember.objects.all(),
+        write_only=True
+    )
+
     class Meta:
         model = CommissionComposition
-        fields = '__all__'
+        fields = ['ID', 'ID_Commission', 'ID_Member', 'member_id', 'Role']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Удаляем write_only поле из ответа, если оно там осталось
+        ret.pop('member_id', None)
+        return ret
+    
 class Commission_CompositionSerializer(serializers.ModelSerializer):
     ID_Member = serializers.PrimaryKeyRelatedField(queryset=CommissionMember.objects.all())
 
@@ -70,7 +97,11 @@ class SpecializationSerializer(serializers.ModelSerializer):
         model = Specialization
         fields = '__all__'
 
-
+class QualificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Qualification
+        fields = '__all__'
+        
 class SecretarySpecializationSerializer(serializers.ModelSerializer): 
     ID_Specialization = serializers.SerializerMethodField()
     class Meta:

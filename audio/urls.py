@@ -1,8 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
 from audio.services.audio_views import upload_audio
-from audio.views.BitrixAuthView import BitrixAuthView
 from audio.views.UploadExcelView import UploadExcelView, UploadDefenseScheduleView
 from audio.views.commissionComposition_views import CommissionCompositionViewSet
 from audio.views.commission_views import CommissionViewSet, CommissionMemberViewSet
@@ -16,6 +14,7 @@ from audio.views.secretarySpecialization_views import SecretarySpecializationVie
 from audio.views.secretary_views import SecretaryViewSet
 from audio.views.specialization_views import SpecializationViewSet
 from audio.views.student_views import StudentViewSet
+from audio.views.qualification_views import QualificationViewSet
 
 router = DefaultRouter()
 
@@ -31,11 +30,11 @@ router.register(r'commission_compositions', CommissionCompositionViewSet, basena
 router.register(r'defenses', DefenseViewSet, basename='defense')
 router.register(r'groups', GroupViewSet, basename='group')
 router.register(r'specializations', SpecializationViewSet, basename='specialization')
+router.register(r'qualifications', QualificationViewSet, basename='qualification')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('upload-audio/', upload_audio, name='upload-audio'),
-    path('accounts/bitrix-auth/', BitrixAuthView.as_view(), name='bitrix-auth'),
     path('upload-excel/', UploadExcelView.as_view(), name='upload_excel'),
     path('upload-defense-schedule/', UploadDefenseScheduleView.as_view(), name='upload_defense_schedule'),
     path('fio_to_dative/', FIOToDativeView.as_view(), name='fio_to_dative'),

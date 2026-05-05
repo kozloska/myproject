@@ -4,7 +4,8 @@ from django_filters import rest_framework as filters
 from audio.models import Student, DefenseSchedule
 from django.db.models import Q
 from .models import Protocol
-
+from django_filters import FilterSet, NumberFilter
+from .models import CommissionComposition
 
 class SecretaryFilter(django_filters.FilterSet):
     Surname = django_filters.CharFilter(field_name='Surname', lookup_expr='icontains')
@@ -118,3 +119,11 @@ class SecretarySpecializationFilter(filters.FilterSet):
     class Meta:
         model = SecretarySpecialization
         fields = ['ID_Secretary', 'specialization_status']  # Добавьте фильтрацию по статусу
+
+
+class CommissionCompositionFilter(FilterSet):
+    commission_id = NumberFilter(field_name="ID_Commission", lookup_expr='exact')
+
+    class Meta:
+        model = CommissionComposition
+        fields = ['commission_id']

@@ -11,27 +11,11 @@ SECRET_KEY = 'django-insecure-0q8v+dbv==lfl3ha=efdm7a87^s#$@e4v!x4sr1r*3hqr&+hec
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-    '172.26.1.35',
-    '172.20.10.5',
-    '172.20.10.1',
-    '10.0.2.2',
-    '*',                    # временно для разработки
-]
 # ====================== CORS & CSRF (самая важная часть) ======================
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 # Разрешаем запросы с вашего фронтенда
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://10.0.2.2:8000",
-    "https://localhost:9000",  # Если используете HTTPS
-    "http://127.0.0.1:8000",
-    "http://172.28.20.54",  # ← добавьте ваш IP
-]
 # Дополнительно разрешаем методы и заголовки
 CORS_ALLOW_METHODS = [
     "GET",
@@ -43,18 +27,29 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_HEADERS = [
-    "accept",
-    "content-type",
-    "authorization",
+    'accept',
+    'accept-encoding',
+    'authorization',  # ← Критично!
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:8000',
+    'http://localhost:9000',
+    'http://127.0.0.1:9000',
     'http://10.0.2.2:8000',
-    'http://172.26.1.35:8000',
     'http://172.28.20.54',
+    'http://localhost:9000',
+    'http://127.0.0.1:9000',  # на всякий случай
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'

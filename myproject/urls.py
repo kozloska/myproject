@@ -4,7 +4,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.views.generic import TemplateView
-from audio.views.BitrixAuthView import BitrixAuthView
 from audio.views import LoginView, LogoutView, CurrentUserView
 urlpatterns = [
     path('admin/', admin.site.urls),

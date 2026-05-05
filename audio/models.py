@@ -12,7 +12,6 @@ class AudioFile(models.Model):
 class Specialization(models.Model):
     ID = models.AutoField(primary_key=True)
     Name = models.TextField(unique=True)
-    Qualification = models.TextField(unique=True)
     Number = models.CharField(max_length=10)
     Status = models.BooleanField()
     class Meta:
@@ -20,6 +19,17 @@ class Specialization(models.Model):
 
     def __str__(self):
         return self.Name
+
+
+class Qualification(models.Model):
+    ID = models.AutoField(primary_key=True)
+    ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
+    Name = models.TextField(verbose_name='Название квалификации')
+    class Meta:
+        db_table = 'Qualification'
+
+    def __str__(self):
+        return f"{self.specialization.Name} - {self.Name}"
 
 class Commission(models.Model):
     ID = models.AutoField(primary_key=True)  # Используйте AutoField для ID
@@ -50,7 +60,8 @@ class Student(models.Model):
     ID_Group = models.ForeignKey(Group, on_delete=models.CASCADE)
     ID_Specialization = models.ForeignKey(Specialization, on_delete=models.CASCADE)
     ID_Project = models.ForeignKey('Project', on_delete=models.SET_NULL, null=True)
-
+    ID_Qualification = models.ForeignKey('Qualification', on_delete=models.SET_NULL, null=True)
+    
     class Meta:
         db_table = 'Student'
 
