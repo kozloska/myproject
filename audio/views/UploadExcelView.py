@@ -87,15 +87,18 @@ class UploadDefenseScheduleView(View):
         """
         try:
             # ✅ 1. Проверка наличия файла
-            if 'file' not in request.FILES:
-                logger.error("Missing file in request")
+            # Проверяем наличие файла и specialization_id
+            if 'file' not in request.FILES or 'file' not in request.FILES or 'specialization_id' not in request.POST:
+                logger.error("Missing file or specialization_id in request")
                 return JsonResponse(
-                    {"status": "error", "message": "File must be provided"},
+                    {"status": "error",
+                     "message": "File and specialization_id must be provided"},
                     status=400
                 )
-
+            
             # ✅ 2. Проверка наличия и валидности specialization_id
             specialization_id = request.POST('specialization_id')
+
             if not specialization_id:
                 return JsonResponse(
                     {"status": "error", "message": "specialization_id is required"},
