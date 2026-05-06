@@ -103,16 +103,44 @@ class QualificationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class SecretarySpecializationSerializer(serializers.ModelSerializer): 
+    # === ДЛЯ ЧТЕНИЯ (выводим полные данные специализации) ===
     ID_Specialization = serializers.SerializerMethodField()
+    ID_Secretary = CommissionMemberShortSerializer(read_only=True)  # или ваш serializer для члена комиссии
+    
+    # === ДЛЯ ЗАПИСИ (принимаем только ID) ===
+    # Важно: имя поля должно отличаться от read-only поля!
+    id_specialization = serializers.PrimaryKeyRelatedField(
+        source='ID_Specialization',  # связываем с модельным полем
+        queryset=Specialization.objects.all(),
+        write_only=True
+    )
+    id_secretary = serializers.PrimaryKeyRelatedField(
+        source='ID_Secretary',
+        queryset=CommissionMember.objects.all(),
+        write_only=True
+    )
+
     class Meta:
         model = SecretarySpecialization
-        fields = ['ID', 'ID_Specialization', 'ID_Secretary']
-    
+        fields = [
+            'ID', 
+            'ID_Specialization',  # read-only (объект)
+            'ID_Secretary',       # read-only (объект)
+            'id_specialization',  # write-only (ID)
+            'id_secretary'        # write-only (ID)
+        ]
+
     def get_ID_Specialization(self, obj):
         if obj.ID_Specialization:
-            data = SpecializationSerializer(obj.ID_Specialization).data
-            return data
+            return SpecializationSerializer(obj.ID_Specialization).data
         return None
+    
+    def to_representation(self, instance):
+        # Убираем write_only поля из ответа клиенту
+        ret = super().to_representation(instance)
+        ret.pop('id_specialization', None)
+        ret.pop('id_secretary', None)
+        return ret
 
 class CommissionSerializer(serializers.ModelSerializer):
     members = CommissionCompositionSerializer(many=True, read_only=True, source='commissioncomposition_set')
