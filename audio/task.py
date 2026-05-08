@@ -6,7 +6,7 @@ import tempfile
 import os
 import logging
 from django.core.files.storage import default_storage
-
+from .services.transcript_cleaner import clean_transcription
 from .services.whisper_service import WhisperTranscriber
 from .models import AudioFile, Project, Question
 
@@ -29,13 +29,19 @@ def process_audio_in_memory_task(self, audio_bytes, file_name, project_id):
         #Транскрибация
         transcription = WhisperTranscriber.transcribe(temp_path, language="ru")
         print(f"\nТРАНСКРИПТ:\n{transcription}\n")
+
+        cleaned_transcription = clean_transcription(transcription)
+        print(f"\n=== ОЧИЩЕННЫЙ ТРАНСКРИПТ ===\n{cleaned_transcription}\n")
+
+        logger.info(f"Оригинал: {len(transcription)} символов → После очистки: {len(cleaned_transcription)} символов")
+
         #Удаляем временный файл 
         os.unlink(temp_path)
         temp_path = None
 
         #Генерация вопросов через LLM
         llm = LLMProcessor(model_path="/opt/deepseek-r1-distill-qwen-14b-q4_k_m.gguf")
-        llm_questions = llm.generate_questions(transcription)
+        llm_questions = llm.generate_questions(cleaned_transcription)
         print(f"Вопросы от LLM:")
         for i, q in enumerate(llm_questions, 1):
             print(f"  {i}. {q}")
