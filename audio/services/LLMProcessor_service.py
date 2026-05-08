@@ -15,8 +15,8 @@ class LLMProcessor:
             n_ctx=8192,
             n_batch=8192,
             n_ubatch=8192,
-            n_threads=8,
-            n_threads_batch=8,  
+            n_threads=4,
+            n_threads_batch=4,  
             n_gpu_layers=0,      # 0 = CPU. Для GPU поставьте -1 или количество слоёв
             verbose=True,
             mmap=True,
