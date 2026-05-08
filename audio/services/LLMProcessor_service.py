@@ -13,7 +13,8 @@ class LLMProcessor:
         self.model = Llama(
             model_path=model_path,
             n_ctx=8192,
-            n_batch=512,
+            n_batch=4096,
+            n_ubatch=4096,
             n_threads=4,
             n_threads_batch=4,  
             n_gpu_layers=0,      # 0 = CPU. Для GPU поставьте -1 или количество слоёв
