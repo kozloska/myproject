@@ -13,7 +13,8 @@ class LLMProcessor:
         self.model = Llama(
             model_path=model_path,
             n_ctx=8192,
-            n_batch=512,
+            n_batch=2048,
+            n_ubatch=512, 
             n_threads=4,
             n_threads_batch=4,  
             n_gpu_layers=0,      # 0 = CPU. Для GPU поставьте -1 или количество слоёв
@@ -32,6 +33,7 @@ class LLMProcessor:
             "3. Объедини повторяющиеся/схожие формулировки в один пункт\n"
             "4. В ответе не используй теги think и прочее\n"
             "5. Исключи мета-комментарии (например, 'Скажите...', 'Еще вопрос')\n"
+            "6. Не генерируй вариации одного и того же вопроса\n"
             f"Текст для анализа: '{text}'"
         )
 
@@ -39,10 +41,10 @@ class LLMProcessor:
             response = self.model(
                 prompt,
                 max_tokens=700,
-                temperature=0.4,
-                top_p=0.9,
-                top_k=40,
-                repeat_penalty=1.1,
+                temperature=0.3,
+                top_p=0.95,
+                top_k=30,
+                repeat_penalty=1.2,
                 stop=["<｜end▁ofsentence｜>"],
             )
             
