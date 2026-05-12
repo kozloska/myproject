@@ -43,8 +43,8 @@ class LLMProcessor:
                 max_tokens=700,
                 temperature=0.3,
                 top_p=0.95,
-                top_k=30,
-                repeat_penalty=1.2,
+                top_k=40,
+                repeat_penalty=1.1,
                 stop=["<｜end▁ofsentence｜>"],
             )
             
