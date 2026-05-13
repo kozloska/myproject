@@ -46,12 +46,15 @@ CORS_ALLOW_HEADERS = [
     "accept",
     "content-type",
     "authorization",
+    "x-csrftoken",          # <--- ДОБАВИТЬ ЭТО
+    "x-requested-with",     # <--- ЖЕЛАТЕЛЬНО ДОБАВИТЬ
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'http://localhost:8000',
+    'http://localhost:9000',
     'http://10.0.2.2:8000',
     'http://172.26.1.35:8000',
     'http://172.28.20.54',
@@ -89,7 +92,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -120,6 +123,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
