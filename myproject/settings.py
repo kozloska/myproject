@@ -13,6 +13,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
+    'el.istu.edu',
     '127.0.0.1',
     '0.0.0.0',
     '172.26.1.35',
@@ -137,11 +138,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ====================== SPECTACULAR ======================
+# Для Spectacular: указываем базовый путь
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API Documentation',
     'DESCRIPTION': 'Система защиты проектов ИРНИТУ',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SERVERS': [
+        {'url': 'https://el.istu.edu/pck', 'description': 'Production'},
+    ],
 }
 
 # ====================== DATABASE ======================
