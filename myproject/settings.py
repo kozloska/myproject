@@ -59,6 +59,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://10.0.2.2:8000',
     'http://172.26.1.35:8000',
     'http://172.28.20.54',
+    'https://el.istu.edu',
+    'http://el.istu.edu', 
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -169,6 +171,9 @@ CELERY_TASK_SERIALIZER = 'json'
 
 # ====================== STATIC & MEDIA ======================
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # Указываем папку, где лежит dist/
+]
 #STATIC_ROOT = BASE_DIR/'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR/'media'

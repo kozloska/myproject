@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.views.generic import TemplateView
 from audio.views import LoginView, LogoutView, CurrentUserView
+from myproject.settings import BASE_DIR
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('audio/', include('audio.urls')),  # Подключение маршрутов вашего приложения
@@ -19,3 +20,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=BASE_DIR / 'static')
