@@ -288,3 +288,47 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return f"{obj.Surname} {obj.Name} {obj.Patronymic}"
+    
+# === ЛЕГКИЕ СЕРИАЛИЗАТОРЫ ДЛЯ ТАБЛИЦЫ ===
+
+class GroupLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['ID', 'Name']
+
+class SpecializationLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialization
+        fields = ['ID', 'Name']
+
+class ProjectLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['ID', 'Title', 'Supervisor']
+
+class StudentArchiveLiteSerializer(serializers.ModelSerializer):
+    ID_Group = GroupLiteSerializer(read_only=True)
+    ID_Specialization = SpecializationLiteSerializer(read_only=True)
+    ID_Project = ProjectLiteSerializer(read_only=True)
+    
+    class Meta:
+        model = Student
+        fields = ['ID', 'Surname', 'Name', 'Patronymic', 'ID_Group', 'ID_Specialization', 'ID_Project']
+
+class DefenseScheduleArchiveLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DefenseSchedule
+        fields = ['ID', 'DateTime']
+
+class ProtocolArchiveLiteSerializer(serializers.ModelSerializer):
+    ID_Student = StudentArchiveLiteSerializer(read_only=True)
+    ID_DefenseSchedule = DefenseScheduleArchiveLiteSerializer(read_only=True)
+    
+    class Meta:
+        model = Protocol
+        fields = [
+            'ID', 'Number', 'Year', 'Grade', 'Status',
+            'ID_Student', 'ID_DefenseSchedule',
+            'ID_Question', 'ID_Question2',
+            'DefenseStartTime', 'DefenseEndTime'
+        ]

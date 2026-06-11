@@ -8,7 +8,7 @@ from audio.views.defense_views import DefenseViewSet
 from audio.views.fio_to_dative import  FIOToDativeView
 from audio.views.group_views import GroupViewSet
 from audio.views.project_views import ProjectViewSet
-from audio.views.protocol_views import ProtocolViewSet
+from audio.views.protocol_views import ProtocolViewSet, ProtocolArchiveViewSet
 from audio.views.question_views import QuestionViewSet
 from audio.views.secretarySpecialization_views import SecretarySpecializationViewSet
 from audio.views.secretary_views import SecretaryViewSet
@@ -24,6 +24,7 @@ router.register(r'secretary_specialization', SecretarySpecializationViewSet, bas
 router.register(r'questions', QuestionViewSet, basename='question')
 router.register(r'students', StudentViewSet, basename='student')
 router.register(r'protocols', ProtocolViewSet, basename='protocol')
+router.register(r'protocols-archive', ProtocolArchiveViewSet, basename='protocol-archive')
 router.register(r'commissions', CommissionViewSet, basename='commission')
 router.register(r'commission_members', CommissionMemberViewSet, basename='commission_member')
 router.register(r'commission_compositions', CommissionCompositionViewSet, basename='commission_composition')

@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from ..filters import ProtocolFilter
 from ..models import Protocol, Student
-from ..serializers import ProtocolSerializer, UpdateGradeSerializer
+from ..serializers import ProtocolSerializer, UpdateGradeSerializer, ProtocolArchiveLiteSerializer
 from rest_framework import viewsets, status
 
 
@@ -13,7 +13,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     filterset_class = ProtocolFilter  
 
     def get_queryset(self):
-        # ✅ КРИТИЧЕСКИ ВАЖНО: загружаем все связанные данные ОДНИМ запросом через JOIN
         queryset = Protocol.objects.select_related(
             'ID_Student',                          # Студент
             'ID_Student__ID_Group',                # Группа студента
@@ -23,8 +22,6 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             'ID_DefenseSchedule',                  # Расписание защиты
             'ID_DefenseSchedule__ID_Commission',   # Комиссия
         ).all()
-        
-        # Сортировка на уровне БД (быстрее, чем в Python)
         return queryset.order_by('-Year', 'Number')
     
     def perform_update(self, serializer):
@@ -40,3 +37,17 @@ class ProtocolViewSet(viewsets.ModelViewSet):
                 # 4. Обновляем статус (только это поле, чтобы не триггерить лишние сигналы)
                 project.Status = "Защита не начата"
                 project.save(update_fields=['Status'])
+
+class ProtocolArchiveViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProtocolArchiveLiteSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProtocolFilter
+    
+    def get_queryset(self):
+        return Protocol.objects.select_related(
+            'ID_Student',
+            'ID_Student__ID_Group',
+            'ID_Student__ID_Specialization',
+            'ID_Student__ID_Project',
+            'ID_DefenseSchedule',
+        ).filter(Status=True).order_by('-Year', 'Number')
