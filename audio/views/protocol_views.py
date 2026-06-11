@@ -12,6 +12,21 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProtocolFilter  
 
+    def get_queryset(self):
+        # ✅ КРИТИЧЕСКИ ВАЖНО: загружаем все связанные данные ОДНИМ запросом через JOIN
+        queryset = Protocol.objects.select_related(
+            'ID_Student',                          # Студент
+            'ID_Student__ID_Group',                # Группа студента
+            'ID_Student__ID_Specialization',       # Специализация студента
+            'ID_Student__ID_Project',              # Проект студента
+            'ID_Student__ID_Qualification',        # Квалификация студента
+            'ID_DefenseSchedule',                  # Расписание защиты
+            'ID_DefenseSchedule__ID_Commission',   # Комиссия
+        ).all()
+        
+        # Сортировка на уровне БД (быстрее, чем в Python)
+        return queryset.order_by('-Year', 'Number')
+    
     def perform_update(self, serializer):
         # 1. Сохраняем изменения в протоколе
         protocol = serializer.save()

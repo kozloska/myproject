@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_results',
     'corsheaders',
+    'debug_toolbar',
 ]
 
 # ====================== MIDDLEWARE ======================
@@ -99,6 +100,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 # ====================== TEMPLATES ======================ss
@@ -154,11 +156,11 @@ SPECTACULAR_SETTINGS = {
 # ====================== DATABASE ======================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',  # Имя вашей базы данных
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dip',  # Имя вашей базы данных
         'USER': 'postgres',  # Имя пользователя PostgreSQL
-        'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
-        'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
+        'PASSWORD': '1',  # Пароль пользователя
+        'HOST': 'localhost',  # Или IP-адрес вашего сервера
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
