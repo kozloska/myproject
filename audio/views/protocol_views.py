@@ -25,7 +25,8 @@ class ProtocolViewSet(viewsets.ModelViewSet):
             'ID_Student__ID_Project',              # Проект студента
             'ID_Student__ID_Qualification',        # Квалификация студента
             'ID_DefenseSchedule',                  # Расписание защиты
-            'ID_DefenseSchedule__ID_Commission',   # Комиссия
+            'ID_DefenseSchedule__ID_Commission', 
+            'ID_DefenseSchedule__ID_Specialization',  
         ).all()
         return queryset.order_by('-Year', 'Number')
     
@@ -61,8 +62,6 @@ class ProtocolArchiveViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def export_excel(self, request):
-        """Экспорт протоколов в Excel"""
-        # ✅ Используем get_queryset() + prefetch_related для секретаря
         queryset = self.get_queryset().prefetch_related(
             'ID_DefenseSchedule__ID_Commission__commissioncomposition_set',
             'ID_DefenseSchedule__ID_Commission__commissioncomposition_set__ID_Member',
@@ -77,7 +76,7 @@ class ProtocolArchiveViewSet(viewsets.ReadOnlyModelViewSet):
         if filterset.is_valid():
             queryset = filterset.qs
 
-        # ✅ Поиск по ФИО с использованием Q объектов
+
         search_query = request.query_params.get('search', '').strip()
         if search_query:
             queryset = queryset.filter(

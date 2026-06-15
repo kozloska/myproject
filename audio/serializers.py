@@ -332,3 +332,18 @@ class ProtocolArchiveLiteSerializer(serializers.ModelSerializer):
             'ID_Question', 'ID_Question2',
             'DefenseStartTime', 'DefenseEndTime'
         ]
+
+class DefenseScheduleLiteSerializer(serializers.ModelSerializer):
+    ID_Specialization = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DefenseSchedule
+        fields = ['ID', 'DateTime', 'Class', 'Count', 'ID_Specialization']
+    
+    def get_ID_Specialization(self, obj):
+        if obj.ID_Specialization:
+            return {
+                'ID': obj.ID_Specialization.ID,
+                'Name': obj.ID_Specialization.Name
+            }
+        return None
