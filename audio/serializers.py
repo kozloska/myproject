@@ -289,7 +289,6 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return f"{obj.Surname} {obj.Name} {obj.Patronymic}"
     
-# === ЛЕГКИЕ СЕРИАЛИЗАТОРЫ ДЛЯ ТАБЛИЦЫ ===
 
 class GroupLiteSerializer(serializers.ModelSerializer):
     class Meta:

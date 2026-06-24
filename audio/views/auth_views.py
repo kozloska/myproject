@@ -16,8 +16,6 @@ class LoginView(APIView):
     authentication_classes = []  
 
     def post(self, request):
-        logger.info("=== LOGIN ATTEMPT STARTED ===")
-        logger.debug(f"Data: {request.data}")
 
         login_val = request.data.get('login')
         password = request.data.get('password')
@@ -33,7 +31,6 @@ class LoginView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
         login(request, user)
-        logger.info(f"✅ LOGIN SUCCESS: {user.login} (ID={user.ID})")
 
         return Response({
             "message": "Успешный вход",
@@ -47,12 +44,10 @@ class LogoutView(APIView):
     authentication_classes = []  
 
     def post(self, request):
-        logger.info(f"LOGOUT requested by user: {request.user if request.user.is_authenticated else 'Anonymous'}")
-        
+                
         # Если пользователь авторизован — выходим
         if request.user.is_authenticated:
             logout(request)
-            logger.info("✅ Logout successful")
         else:
             logger.info("User was not authenticated")
 

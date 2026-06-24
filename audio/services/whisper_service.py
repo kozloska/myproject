@@ -13,12 +13,8 @@ class WhisperTranscriber:
     def get_model(cls):
         if cls._model is None:
             try:
-                logger.info("Загрузка модели Whisper 'small'...")
-                # ← Загружаем модель через API openai-whisper
                 cls._model = whisper.load_model("small")
-                logger.info("Модель small успешно загружена.")
             except Exception as e:
-                logger.error(f"Ошибка загрузки модели: {e}")
                 cls._model = None
                 raise e
         return cls._model

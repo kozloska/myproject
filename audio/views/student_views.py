@@ -32,17 +32,10 @@ class StudentViewSet(viewsets.ModelViewSet):
                 protocol.DefenseStartTime = None
                 protocol.DefenseEndTime = None
                 protocol.save()
-
-               # if student.ID_Project:
-                #    student.ID_Project.Status = "Защита не начата"
-                #    student.ID_Project.save()
-
                 return Response({"status": "Установлен статус пересдачи"})
 
             else:
-                # Обычная оценка + присвоение номера (только если ещё нет)
                 protocol.Grade = new_grade
-
                 if not protocol.Number or protocol.Number.strip() == '':
                     spec = student.ID_Specialization
                     year = protocol.Year
