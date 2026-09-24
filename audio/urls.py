@@ -16,6 +16,7 @@ from audio.views.specialization_views import SpecializationViewSet
 from audio.views.student_views import StudentViewSet
 from audio.views.qualification_views import QualificationViewSet
 from audio.views.certificates_views import CertificateGenerate
+from audio.views.contract_views import ContractGenerate
 router = DefaultRouter()
 
 router.register(r'projects', ProjectViewSet, basename='project')
@@ -40,6 +41,7 @@ urlpatterns = [
     path('upload-defense-schedule/', UploadDefenseScheduleView.as_view(), name='upload_defense_schedule'),
     path('fio_to_dative/', FIOToDativeView.as_view(), name='fio_to_dative'),
     path('generate-certificates/', CertificateGenerate.as_view(), name='generate_certificates'),
+    path('generate-contracts/', ContractGenerate.as_view(), name='contracts'),
 ]
 
 
