@@ -47,8 +47,8 @@ CORS_ALLOW_HEADERS = [
     "accept",
     "content-type",
     "authorization",
-    "x-csrftoken",          # <--- ДОБАВИТЬ ЭТО
-    "x-requested-with",     # <--- ЖЕЛАТЕЛЬНО ДОБАВИТЬ
+    "x-csrftoken",        
+    "x-requested-with", 
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -155,10 +155,10 @@ SPECTACULAR_SETTINGS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',  # Имя вашей базы данных
-        'USER': 'postgres',  # Имя пользователя PostgreSQL
-        'PASSWORD': 'gfhjkmjncthdthf',  # Пароль пользователя
-        'HOST': '127.0.0.1',  # Или IP-адрес вашего сервера
+        'NAME': 'postgres', # Имя вашей базы данных
+        'USER': 'postgres', # Имя пользователя PostgreSQL
+        'PASSWORD': 'gfhjkmjncthdthf', # Пароль пользователя
+        'HOST': '127.0.0.1', # Или IP-адрес вашего сервера
         'PORT': '5432',  # Порт PostgreSQL, по умолчанию 5432
     }
 }
